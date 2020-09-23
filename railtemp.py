@@ -41,8 +41,22 @@ class Rail:
         self.radiation_area = radiation_area
         self.material = material
         self.volume = self.cross_area
+        self.profile_coordinates = self.__load_section_coordinates()
         
         pass
+
+    def __load_section_coordinates(self):
+        '''
+        method to retrieve X,Y,Z coordinates of a 1 meter long rail track
+        '''
+
+        file = str('sections/' + self.name + '.csv')
+
+        try:
+           return pd.read_csv(file)
+        except:
+            print('Rail profile name not found in database')
+            return
 
     
 
