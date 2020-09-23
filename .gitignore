@@ -1,2 +1,3 @@
 __pycache__/railtemp.cpython-37.pyc
 *.ipynb
+.vscode/settings.json
