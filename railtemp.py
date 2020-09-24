@@ -23,13 +23,11 @@ class Rail:
         if isinstance(material,RailMaterial):
             pass
         else:
-            print('invalid rail material')
-            return
+            raise(Exception('Invalid rail material'))
         if 0<=azimuth<=180:
             pass
         else:
-            print('invalid azimuth. It must be between 0-180')
-            return
+            raise(Exception('invalid azimuth It must be between 0-180'))
         
         
         
@@ -43,7 +41,7 @@ class Rail:
         self.volume = self.cross_area
         self.profile_coordinates = self.__load_section_coordinates()
         
-        pass
+        return None
 
     def __load_section_coordinates(self):
         '''
@@ -55,8 +53,7 @@ class Rail:
         try:
            return pd.read_csv(file)
         except:
-            print('Rail profile name not found in database')
-            return
+            raise(Exception('Rail profile name not found in database'))
 
 
 class RailMaterial:
@@ -97,11 +94,8 @@ class RailMaterial:
         
             pass
         else:
-            print('Physical parameter error')
-
-            return
-
-  
+            raise(Exception('Physical parameter error'))
+              
         self.density = density
         self.solar_absort = solar_absort
         self.emissivity = emissivity
@@ -162,7 +156,7 @@ class InputData:
         solar_radiation.rename('SR',inplace=True)
         ambient_temperature.rename('Tamb',inplace=True)
         wind_velocity.rename('Wv',inplace=True)
-        
+
         
         #function to join the series in a dataframe
         def __join_series(series):
