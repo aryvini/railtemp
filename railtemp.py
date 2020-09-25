@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from math import *
+import pytz
 
 
 
@@ -12,13 +13,14 @@ class Rail:
     name: name of the rail cross section, default=UIC42, string;
     azimuth: azimuth of the rail track, between 0 and 180 [degrees], float64;
     lat,long: latitude and longitude of the rail track [degrees], float64;
+    elev: sea level altitude of the site [m], float64;
     cross_area: cross section area [m²], float64;
     convection_area: area that exchange heat by convection [m²], flota64;
     radiation_area: area that exchange heat by radiation [m²], float64;
     material: RailMaterial object
         
     '''
-    def __init__(self,name,azimuth,lat,long,cross_area,convection_area,radiation_area,material):
+    def __init__(self,name,azimuth,lat,long,elev,cross_area,convection_area,radiation_area,material):
         
         if isinstance(material,RailMaterial):
             pass
@@ -33,7 +35,7 @@ class Rail:
         
         self.name = name
         self.azimuth = azimuth
-        self.position = (lat,long)
+        self.position = (lat,long,elev)
         self.cross_area = cross_area
         self.convection_area = convection_area
         self.radiation_area = radiation_area
@@ -174,26 +176,15 @@ class InputData:
 
         return None
 
-
-
-
-
-           
-
-
-
-
-
-
-          
-            
-
         
 
 
 class Simu:
 
-    def __init__(self):
+    def __init__(self,rail,weather):
+        
+
+
         return
 
 
