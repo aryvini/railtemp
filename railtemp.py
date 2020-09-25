@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from math import *
 import pytz
+import datetime
 
 
 
@@ -113,12 +114,13 @@ class InputData:
     Solar radiation: pandas Series with solar radiation measurements in W/m²;
     Wind velocity: Series with wind velocity in m/s;
     Ambient temperature: Series with ambient temperature in Celsius
+    timezone of the datetime index. to verify all the timezone available, run pytz.all_timezones
 
     '''
 
 
 
-    def __init__(self,solar_radiation,ambient_temperature,wind_velocity):
+    def __init__(self,solar_radiation,ambient_temperature,wind_velocity,timezone):
 
 
 
@@ -129,6 +131,11 @@ class InputData:
             pass
         else:
             raise(Exception('all inputs must be pandas.Series object'))
+
+        if isinstance(timezone,datetime.tzinfo):
+            pass
+        else:
+            raise(Exception('timezone must be an datetime.tzinfo object'))
 
 
 
@@ -168,6 +175,7 @@ class InputData:
         self.SR = solar_radiation
         self.Tamb = ambient_temperature
         self.Wv = wind_velocity
+        self.tz = timezone 
 
         series = [self.SR,self.Tamb,self.Wv]
 
