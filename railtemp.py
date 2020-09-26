@@ -3,6 +3,14 @@ import numpy as np
 from math import *
 import pytz
 import datetime
+import pysolar as ps
+import time
+from scipy import optimize
+
+from functions_CNU import *
+
+
+
 
 
 
@@ -36,7 +44,7 @@ class Rail:
         
         self.name = name
         self.azimuth = azimuth
-        self.position = (lat,long,elev)
+        self.position = {'lat':lat,'long':long,'elev':elev}
         self.cross_area = cross_area
         self.convection_area = convection_area
         self.radiation_area = radiation_area
@@ -105,7 +113,7 @@ class RailMaterial:
         self.specific_heat = specific_heat
 
                         
-class InputData:
+class WeatherData:
     '''
     Raw data input
     All data must be pandas.Series objects, with same datetime index.
@@ -187,13 +195,174 @@ class InputData:
         
 
 
-class Simu:
+class CNU:
+    '''
+    Create a Simu object
+
+    Params:
+    rail: Rail object
+    weather: Weather object
+
+    Methods:
+    run: Run the simulation
+
+    '''
 
     def __init__(self,rail,weather):
+
+
+        if all([isinstance(rail,Rail),isinstance(weather,WeatherData)]):
+            pass
+        else:
+            raise(Exception('The inputs must be an object of classes Rail and WeatherData'))
+
+
+
+        self.rail = rail
+        self.weather = weather
+        self.result = []
         
+        return None
+
+    def run(self,Trail_initial):
+        self.df = self.weather.df.copy()
+        start_time = time.time()
 
 
-        return
+        print('Converting the temperatures to Kelvin')
+        self.__celsius_to_kelvin()
+        print('Done')
+
+        print('Calculating Hconv')
+        self.__calculate_hconv()
+        print('Done')
+
+        print('Getting solar data')
+        self.__get_solar_data()
+        print('Done')
+
+        print('Calculating As')
+        self.__calculate_As()
+        print('Done')
+
+        print('Creating Delta time Columns')
+        self.__create_delta_time_columns()
+        print('Done')
+
+        print('Setting initial conditions')
+        self.__initial_conditions(Trail_initial)
+        print('Done')
+
+
+        print('Solving model')
+        self.__solve()
+        print('Done')
+
+        print("--- %s seconds ---" % (time.time() - start_time))
+
+
+
+        return self.result
+
+    
+    def __celsius_to_kelvin(self):
+        
+        data = self.df
+        data['Tamb'] = data.apply(lambda x: x['Tamb']+273.15, axis=1)
+
+        return None
+
+    
+    def __calculate_hconv(self):
+
+        data = self.df
+        data['Hconv'] = data.apply(lambda x: hconv(x['Wv']),axis=1)
+
+        return None
+
+    def __get_solar_data(self):
+
+        data = self.df
+        tz = self.weather.tz
+        lat = self.rail.position['lat']
+        long = self.rail.position['long']
+        elev = self.rail.position['elev']
+        data['Date_time'] = data.index.tz_localize(tz)
+        data['Sun_azimuth'] = data.apply(lambda x: ps.solar.get_azimuth(lat,long,x['Date_time'],elev),axis=1)
+        data['Sun_altitude'] = data.apply(lambda x: ps.solar.get_altitude(lat,long,x['Date_time'],elev),axis=1)
+
+        data.drop(['Date_time'],axis=1,inplace=True)
+
+        return None
+    
+    def __calculate_As(self):
+
+        data = self.df
+        profile = self.rail.profile_coordinates
+        rail_azimuth = self.rail.azimuth
+        data['As'] = data.apply(lambda x: shadowArea_sunArea(profile,x['Sun_azimuth'],x['Sun_altitude'],rail_azimuth)[1] if x['Sun_altitude']>0 else 0,axis=1)
+
+        return None
+
+    def __create_delta_time_columns(self):
+
+        data = self.df
+        data.reset_index(inplace=True)
+        data['Delta_time'] = 0
+        data['Simu_time'] = 0
+
+        for i in range(0,len(list(data.index))):
+            if i == 0:
+                pass
+            else:
+                t0 = data.loc[(i-1)]['Date']
+                ti = data.loc[i]['Date']
+                data.loc[i,'Delta_time'] = (ti-t0).seconds
+                data.loc[i,'Simu_time'] = (ti-data.loc[0,'Date']).seconds
+
+        if len(data['Delta_time'].unique()) > 2:
+            raise(Exception('Datetime index error, time steps are not evenly spaced'))
+
+        return None
+
+    def __initial_conditions(self,Trail_initial):
+
+        data = self.df
+        #Create Tr_simu column
+        data['Tr_simu'] = 0
+
+        #Set initial condition to the Rail Temperature as first measured temperature on the rail
+        data.loc[0,'Tr_simu'] = Trail_initial
+
+        return None
+
+    def __solve(self):
+
+        # data = self.df
+        # solar_absort = self.rail.material.solar_absort
+
+        # for i in range(1,len(list(data.index))):
+            
+        #     def find_Trail_i(Tr_i):
+        #         row = data.loc[i]
+                
+        #         A = Af(solar_absort,row['As'],row['SR'])
+        #         C = Cf(row['Hconv'],Ac,Tr_i,row['TA'])
+        #         E = Ef(Ar,Tr_i,row['TA'])
+        #         K = Kf(Tr_i-273.15) #Converter a input pois é necessário calcular o Cr em Celsius
+        #         fres = (1/K)*(A-C-E)
+
+        #         return (((row['Delta_time']*fres) + data.loc[i-1]['Tr_simu'])-Tr_i)
+
+        #     #Minimeze the function to find real Tr_simu 
+        #     data.loc[i,'Tr_simu'] = optimize.newton(find_Trail_i,300,tol=1e-5)
+
+
+        return None
+
+
+
+
 
 
 
