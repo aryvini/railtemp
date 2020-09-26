@@ -1,3 +1,5 @@
 __pycache__/railtemp.cpython-37.pyc
 *.ipynb
 .vscode/settings.json
+__pycache__/functions.cpython-37.pyc
+__pycache__/functions_CNU.cpython-37.pyc
