@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from math import *
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
+import scipy.constants
 
 
 #Projection of the points based on solar azimute and elevation
@@ -79,19 +80,70 @@ def hconv(Wv):
 
 ## Decomposing the model into part-functions so help the solving process
 
-def Af(SA,As,SolarRadiation):
-   
-    return SA*As*SolarRadiation
+def Af(SA,As,SR):
+    ''' 
+    Incoming Energy part of the balance equation
 
-def Cf(hc,Ac,Trail,Tsky):
-    return hc*Ac*(Trail-Tsky)
+    Params:
+    SA: Solar Absorptivity of the material [#], float64
+    As: Area that receive energy from the sun, [m²], float64
+    SR: Incoming solar radiation [W/m²], float64
+
+    Return:
+
+    SA*As*SR
+    '''
+
+    return SA*As*SR
+
+def Cf(hc,Ac,Trail,Tamb):
+    '''
+    Convection part of the balance equation
+
+    Params:
+    hc: Convection coefficient [W/m²K] float64
+    Ac: Area that exchange heat by convections [m²]
+    Trail: Rail temperature to be solved [C]
+    Tamb: Ambient temperature [C]
     
-def Ef(Ar,Trail,Tamb):
-    Tsky = Tamb
-    return Er*Sig*Ar*(pow(Trail,4)-pow((Tsky),4))
+    Returns:
+    hc*Ac*(Trail-Tamb)
+    '''
+
+    return hc*Ac*(Trail-Tamb)
+    
+def Ef(Ar,Trail,Tamb,Er):
+    '''
+    Emitting radiation part of the balance equation
+
+    Params:
+    Ar: Area that emitts radiation [m²]
+    Trail: Rail temperature to be solved [C]
+    Tamb: Ambient temperature [C]
+    Er: Resultand Emissivity
+
+    Returns:
+
+    Er*Sig*Ar*(pow(Trail,4)-pow((Tamb),4))
+    '''
+    Sig = scipy.constants.Stefan_Boltzmann
+
+    return Er*Sig*Ar*(pow(Trail,4)-pow((Tamb),4))
     
 
-def Kf(Trail):
+def Kf(pho,Cr,Trail,Vr):
+    '''
+    Right part of the balance equation
+    Params:
+    pho: Density of the rail material
+    Cr: Heat capacity function of the material
+    Trail: Rail temperature to be solved [C]
+    Vr: Volume of the rail segment
+    
+    Returns:
+    pho*Cr(Trail)*Vr
+    '''
+
     return pho*Cr(Trail)*Vr
 
 

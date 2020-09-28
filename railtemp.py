@@ -220,11 +220,21 @@ class CNU:
 
         self.rail = rail
         self.weather = weather
-        self.result = []
         
         return None
 
     def run(self,Trail_initial):
+        '''
+        Run the simulation
+        
+        Params:
+        Trail_initial: Initial temperature of the rail [C]
+
+        Returns:
+
+        CNU.result dataframe
+
+        '''
         self.df = self.weather.df.copy()
         start_time = time.time()
 
@@ -258,17 +268,33 @@ class CNU:
         self.__solve()
         print('Done')
 
+        print('Converting temperatures to Celsius')
+        self.__kelvin_to_celsius()
+        print('Done')
+
+
+
         print("--- %s seconds ---" % (time.time() - start_time))
 
+        self.result = self.df.copy()
+        self.result.set_index('Date',inplace=True)
 
 
-        return self.result
+        return None
 
     
     def __celsius_to_kelvin(self):
         
         data = self.df
         data['Tamb'] = data.apply(lambda x: x['Tamb']+273.15, axis=1)
+
+        return None
+
+    def __kelvin_to_celsius(self):
+        
+        data = self.df
+        data['Tamb'] = data.apply(lambda x: x['Tamb']-273.15, axis=1)
+        data['Tr_simu'] = data.apply(lambda x: x['Tr_simu']-273.15, axis=1)
 
         return None
 
@@ -331,31 +357,39 @@ class CNU:
         #Create Tr_simu column
         data['Tr_simu'] = 0
 
-        #Set initial condition to the Rail Temperature as first measured temperature on the rail
-        data.loc[0,'Tr_simu'] = Trail_initial
+        #Set initial condition to the Rail Temperature
+        #Convert the input from Celsius to Kelvin
+        data.loc[0,'Tr_simu'] = (Trail_initial+273.15)
 
         return None
 
     def __solve(self):
 
-        # data = self.df
-        # solar_absort = self.rail.material.solar_absort
+        data = self.df
+        solar_absort = self.rail.material.solar_absort
+        Ac = self.rail.convection_area
+        Ar = self.rail.radiation_area
+        Er = self.rail.material.emissivity
+        pho = self.rail.material.density
+        Cr = self.rail.material.specific_heat
+        Vr = self.rail.volume
 
-        # for i in range(1,len(list(data.index))):
+
+        for i in range(1,len(list(data.index))):
             
-        #     def find_Trail_i(Tr_i):
-        #         row = data.loc[i]
+            def find_Trail_i(Tr_i):
+                row = data.loc[i]
                 
-        #         A = Af(solar_absort,row['As'],row['SR'])
-        #         C = Cf(row['Hconv'],Ac,Tr_i,row['TA'])
-        #         E = Ef(Ar,Tr_i,row['TA'])
-        #         K = Kf(Tr_i-273.15) #Converter a input pois é necessário calcular o Cr em Celsius
-        #         fres = (1/K)*(A-C-E)
+                A = Af(solar_absort,row['As'],row['SR'])
+                C = Cf(row['Hconv'],Ac,Tr_i,row['Tamb'])
+                E = Ef(Ar,Tr_i,row['Tamb'],Er)
+                K = Kf(pho,Cr,(Tr_i-273.15),Vr) #Cr equation is in Celsius, transformation is needed 
+                fres = (1/K)*(A-C-E)
 
-        #         return (((row['Delta_time']*fres) + data.loc[i-1]['Tr_simu'])-Tr_i)
+                return (((row['Delta_time']*fres) + data.loc[i-1]['Tr_simu'])-Tr_i)
 
-        #     #Minimeze the function to find real Tr_simu 
-        #     data.loc[i,'Tr_simu'] = optimize.newton(find_Trail_i,300,tol=1e-5)
+            #Minimize the function to find real Tr_simu 
+            data.loc[i,'Tr_simu'] = optimize.newton(find_Trail_i,300,tol=1e-6)
 
 
         return None
