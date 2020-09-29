@@ -146,6 +146,23 @@ def Kf(pho,Cr,Trail,Vr):
 
     return pho*Cr(Trail)*Vr
 
+def Cr(temperature):
+    '''
+    Specific heat depending on the temperature according to EN1993-1-2
+
+    Params:
+    temperature [Celsius], float64
+
+    Returns:
+    specific heat [J/ (kg K)]
+    '''
+    t = temperature
+    
+    if t >= 20:
+        
+        return (425+7.73e-1*t) - (1.69e-3 * pow(t,2)) + (2.22e-6 * pow(t,3))
+    else:
+        return Cr(20)
 
 
 
