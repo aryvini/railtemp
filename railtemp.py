@@ -20,16 +20,25 @@ class Rail:
      
     Params:
     name: name of the rail cross section, default=UIC42, string;
+
     azimuth: azimuth of the rail track, between 0 and 180 [degrees], float64;
+
     lat,long: latitude and longitude of the rail track [degrees], float64;
+
     elev: sea level altitude of the site [m], float64;
+
     cross_area: cross section area [m²], float64;
+
     convection_area: area that exchange heat by convection [m²], flota64;
+
     radiation_area: area that exchange heat by radiation [m²], float64;
+
+    ambient_emissivity: surroundings emissivity; float64
+
     material: RailMaterial object
         
     '''
-    def __init__(self,name,azimuth,lat,long,elev,cross_area,convection_area,radiation_area,material):
+    def __init__(self,name,azimuth,lat,long,elev,cross_area,convection_area,radiation_area,ambient_emissivity,material):
         
         if isinstance(material,RailMaterial):
             pass
@@ -48,6 +57,7 @@ class Rail:
         self.cross_area = cross_area
         self.convection_area = convection_area
         self.radiation_area = radiation_area
+        self.ambient_emissivity = ambient_emissivity
         self.material = material
         self.volume = self.cross_area
         self.profile_coordinates = self.__load_section_coordinates()
@@ -369,7 +379,7 @@ class CNU:
         solar_absort = self.rail.material.solar_absort
         Ac = self.rail.convection_area
         Ar = self.rail.radiation_area
-        Er = self.rail.material.emissivity
+        Er = self.rail.material.emissivity * self.rail.ambient_emissivity
         pho = self.rail.material.density
         Cr = self.rail.material.specific_heat
         Vr = self.rail.volume
