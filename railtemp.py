@@ -89,7 +89,26 @@ class RailMaterial:
     specific_heat: function that defines the heat capacity of the material, default=specific heat of steel defined by EN1993-1-2
     '''
 
-    def __init__(self,density=7850,solar_absort=0.8,emissivity=0.7, specific_heat=Cr):
+    def __Cr(temperature):
+        '''
+        Specific heat depending on the temperature according to EN1993-1-2
+
+        Params:
+        temperature [Celsius], float64
+
+        Returns:
+        specific heat [J/ (kg K)]
+        '''
+        t = temperature
+        
+        if t >= 20:
+            
+            return (425+7.73e-1*t) - (1.69e-3 * pow(t,2)) + (2.22e-6 * pow(t,3))
+        else:
+            return Cr(20)
+
+
+    def __init__(self,density=7850,solar_absort=0.8,emissivity=0.7, specific_heat=__Cr):
 
         
         if all([(0 < solar_absort <= 1),(0 < emissivity <= 1)]):
@@ -380,12 +399,7 @@ class CNU:
                 return (((row['Delta_time']*fres) + data.loc[i-1]['Tr_simu'])-Tr_i)
 
             #Minimize the function to find real Tr_simu 
-
-            try:
-                data.loc[i,'Tr_simu'] = optimize.newton(func=find_Trail_i,x0=273,maxiter=30000,tol=1e-5,x1=400)
-            except:
-                raise(Exception('Not converged to a solution'))
-
+            data.loc[i,'Tr_simu'] = optimize.newton(find_Trail_i,300,tol=1e-6)
 
 
         return None
