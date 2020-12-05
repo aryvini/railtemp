@@ -152,10 +152,16 @@ class WeatherData:
         if __check_index((solar_radiation,ambient_temperature,wind_velocity)):
             pass
 
-        #changing pd.Series names
+        #changing pd.Series names and indexes
+        #In CNU_create delta time column, the index name must be called Date
         solar_radiation.rename('SR',inplace=True)
+        solar_radiation.rename_axis('Date',inplace=True)
+
         ambient_temperature.rename('Tamb',inplace=True)
+        ambient_temperature.rename_axis('Date',inplace=True)
+
         wind_velocity.rename('Wv',inplace=True)
+        wind_velocity.rename_axis('Date',inplace=True)
 
         
         #function to join the series in a dataframe
