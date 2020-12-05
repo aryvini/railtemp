@@ -6,8 +6,12 @@ import datetime
 import pysolar as ps
 import time
 from scipy import optimize
+import os
+import sys
 
 from functions_CNU import *
+
+package_directory = os.path.dirname(os.path.abspath(__file__))
 
 
 
@@ -61,7 +65,7 @@ class Rail:
         method to retrieve X,Y,Z coordinates of a 1 meter long rail track
         '''
 
-        file = str('sections/' + self.name + '.csv')
+        file = str(str(package_directory)+'/sections/' + self.name + '.csv')
 
         try:
            return pd.read_csv(file)
