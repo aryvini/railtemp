@@ -20,21 +20,13 @@ class Rail:
      
     Params:
     name: name of the rail cross section, default=UIC42, string;
-
     azimuth: azimuth of the rail track, between 0 and 180 [degrees], float64;
-
     lat,long: latitude and longitude of the rail track [degrees], float64;
-
     elev: sea level altitude of the site [m], float64;
-
     cross_area: cross section area [m²], float64;
-
     convection_area: area that exchange heat by convection [m²], flota64;
-
     radiation_area: area that exchange heat by radiation [m²], float64;
-
     ambient_emissivity: surroundings emissivity; float64
-
     material: RailMaterial object
         
     '''
