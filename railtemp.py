@@ -8,6 +8,7 @@ import time
 from scipy import optimize
 import os
 import sys
+import warnings
 
 from functions_CNU import *
 
@@ -340,7 +341,9 @@ class CNU:
                 data.loc[i,'Simu_time'] = (ti-data.loc[0,'Date']).seconds
 
         if len(data['Delta_time'].unique()) > 2:
-            raise(Exception('Datetime index error, time steps are not evenly spaced'))
+            warnings.warn('CAUTION: Datetime index error, time steps are not evenly spaced. The simulation will continue, but attention is required')
+            #pass
+            #raise(Exception('Datetime index error, time steps are not evenly spaced'))
 
         return None
 
