@@ -267,8 +267,11 @@ class CNU:
         print('Done')
 
 
-
-        print("--- %s seconds ---" % (time.time() - start_time))
+        print(f'Finished in: {datetime.datetime.now()}')
+        print(f'Execution time: {time.time() - start_time}')
+        print('------------------------------------')
+        #print("--- %s seconds ---" % (time.time() - start_time))
+        
 
         self.result = self.df.copy()
         self.result.set_index('Date',inplace=True)
