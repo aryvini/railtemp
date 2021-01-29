@@ -23,7 +23,7 @@ class Rail:
     ''' 
     Class that defines rail geometric properties and location
      
-    Params:
+    Parameters:
     name: name of the rail cross section, default=UIC42, string;
     azimuth: azimuth of the rail track, between 0 and 180 [degrees], float64;
     lat,long: latitude and longitude of the rail track [degrees], float64;
@@ -78,7 +78,7 @@ class RailMaterial:
     '''
     Create a RailMaterial instance
 
-    params:
+    Parameters:
 
     density: density of material [kg/m³] default=7850, float64
     solar_absort: radiation absorptivity of the rail surface [#] (0 to 1), default=0.8 float64
@@ -106,12 +106,11 @@ class WeatherData:
     Raw data input
     All data must be pandas.Series objects, with same datetime index.
 
-    Params:
+    Parameters:
     Solar radiation: pandas Series with solar radiation measurements in W/m²;
     Wind velocity: Series with wind velocity in m/s;
     Ambient temperature: Series with ambient temperature in Celsius
     timezone of the datetime index. to verify all the timezone available, run pytz.all_timezones
-
     '''
 
 
@@ -193,7 +192,7 @@ class CNU:
     '''
     Create a Simu object
 
-    Params:
+    Parameters:
     rail: Rail object
     weather: Weather object
 
@@ -221,7 +220,7 @@ class CNU:
         '''
         Run the simulation
         
-        Params:
+        Parameters:
         Trail_initial: Initial temperature of the rail [C]
 
         Returns:
