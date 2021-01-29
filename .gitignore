@@ -1,6 +1,7 @@
 __pycache__/railtemp.cpython-37.pyc
-*.ipynb
+ignore/*
 .vscode/settings.json
 __pycache__/functions.cpython-37.pyc
 __pycache__/functions_CNU.cpython-37.pyc
 .ipynb_checkpoints/railtemp-checkpoint.py
+**/.ipynb_checkpoints/*
