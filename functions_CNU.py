@@ -6,7 +6,7 @@ from scipy.spatial import ConvexHull, convex_hull_plot_2d
 import scipy.constants
 
 
-#Projection of the points based on solar azimute and elevation
+#Projection of the points based on solar azimuth and elevation
 
 def project_point(x,y,z,azi,elev):
     """ Project on XY plane a spatial point considering a azimuth and elevation of the sun
@@ -31,7 +31,7 @@ def project_point(x,y,z,azi,elev):
 
 def shadowArea_sunArea(input_df,sunAzimuth,sunElevation,railAzimuth):
     """
-    Evaluate the shadowArea and the sunArea based on the spatial coordinates of the rail, azimtuh and elevation of the sun
+    Evaluate the shadowArea and the sunArea based on the spatial coordinates of the rail, azimuth and elevation of the sun
     The area of projected points is calculated using scipy.spatial.ConvexHull 
     args:
     input_df (Pandas Dataframe) containing ['X','Y','Z'] columns as coordinates of 1 meter of railway profile

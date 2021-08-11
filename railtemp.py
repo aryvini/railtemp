@@ -240,8 +240,8 @@ class CNU:
         self.__calculate_hconv()
         print('Done')
 
-        print('Getting solar data')
-        self.__get_solar_data()
+        print('Fetching solar data')
+        self.__fetch_solar_data()
         print('Done')
 
         print('Calculating As')
@@ -302,7 +302,7 @@ class CNU:
 
         return None
 
-    def __get_solar_data(self):
+    def __fetch_solar_data(self):
 
         data = self.df
         tz = self.weather.tz
