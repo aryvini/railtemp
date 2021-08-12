@@ -326,6 +326,15 @@ class CNU:
 
         return None
 
+    def __calculate_original_CNU_As(self):
+
+        data = self.df
+        profile = self.rail.profile_coordinates
+        rail_azimuth = self.rail.azimuth
+        data['As'] = data.apply(lambda x: shadowArea_sunArea_oringal_CNU(profile,x['Sun_azimuth'],x['Sun_altitude'],rail_azimuth)[1] if x['Sun_altitude']>0 else 0,axis=1)
+
+        return None
+
     def __create_delta_time_columns(self):
 
         data = self.df
@@ -396,6 +405,141 @@ class CNU:
 
 
         return None
+
+
+    def __fixed_As(self,Area):
+        data = self.df
+
+        data['As'] = Area
+
+        return None
+
+    def run_fixed_area(self, Trail_initial,Area=0.1):
+        '''
+        Run the simulation with fixed value of As parameter
+        
+        Parameters:
+        Trail_initial: Initial temperature of the rail [C]
+        Area: Area exposed to the sun's incoming radiation [m²]
+
+        Returns:
+        
+        None
+
+        '''
+        self.df = self.weather.df.copy()
+        start_time = time.time()
+
+
+        print('Converting the temperatures to Kelvin')
+        self.__celsius_to_kelvin()
+        print('Done')
+
+        print('Calculating Hconv')
+        self.__calculate_hconv()
+        print('Done')
+
+        print('Fetching solar data')
+        self.__fetch_solar_data()
+        print('Done')
+
+        print('Calculating As')
+        self.__fixed_As(Area)
+        print('Done')
+
+        print('Creating Delta time Columns')
+        self.__create_delta_time_columns()
+        print('Done')
+
+        print('Setting initial conditions')
+        self.__initial_conditions(Trail_initial)
+        print('Done')
+
+
+        print('Solving model')
+        self.__solve()
+        print('Done')
+
+        print('Converting temperatures to Celsius')
+        self.__kelvin_to_celsius()
+        print('Done')
+
+
+        print(f'Finished in: {datetime.datetime.now()}')
+        print(f'Execution time: {time.time() - start_time}')
+        print('------------------------------------')
+        #print("--- %s seconds ---" % (time.time() - start_time))
+        
+
+        self.result = self.df.copy()
+        self.result.set_index('Date',inplace=True)
+
+
+        return None
+
+    def run_original_CNU_area(self, Trail_initial):
+        '''
+        Run the simulation with fixed value of As parameter
+        
+        Parameters:
+        Trail_initial: Initial temperature of the rail [C]
+        Area: Area exposed to the sun's incoming radiation [m²]
+
+        Returns:
+        
+        None
+
+        '''
+        self.df = self.weather.df.copy()
+        start_time = time.time()
+
+
+        print('Converting the temperatures to Kelvin')
+        self.__celsius_to_kelvin()
+        print('Done')
+
+        print('Calculating Hconv')
+        self.__calculate_hconv()
+        print('Done')
+
+        print('Fetching solar data')
+        self.__fetch_solar_data()
+        print('Done')
+
+        print('Calculating As')
+        self.__calculate_original_CNU_As()
+        print('Done')
+
+        print('Creating Delta time Columns')
+        self.__create_delta_time_columns()
+        print('Done')
+
+        print('Setting initial conditions')
+        self.__initial_conditions(Trail_initial)
+        print('Done')
+
+
+        print('Solving model')
+        self.__solve()
+        print('Done')
+
+        print('Converting temperatures to Celsius')
+        self.__kelvin_to_celsius()
+        print('Done')
+
+
+        print(f'Finished in: {datetime.datetime.now()}')
+        print(f'Execution time: {time.time() - start_time}')
+        print('------------------------------------')
+        #print("--- %s seconds ---" % (time.time() - start_time))
+        
+
+        self.result = self.df.copy()
+        self.result.set_index('Date',inplace=True)
+
+
+        return None
+
 
 
 
