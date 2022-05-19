@@ -6,3 +6,6 @@ The code presented here is subjected of a Master Thesis work developed at [Insti
 
 The purpose of the code is to facilitate the process of simulate/calculate a heat transfer equation varying many parameters such as: geolocation, profile, physical aspects and more. Therefore this module abstract the process of solving into some easy classes' methods. A example of usage is available [here](example/example.ipynb).
 
+
+In case of any issue or question, feel free to contact me: aryviniciusnf@gmail.com
+
