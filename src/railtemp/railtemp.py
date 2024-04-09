@@ -10,7 +10,7 @@ import os
 import sys
 import warnings
 
-from functions_CNU import *
+from railtemp.utils import *
 
 package_directory = os.path.dirname(os.path.abspath(__file__))
 
