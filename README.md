@@ -1,5 +1,9 @@
 # railtemp
 
+[![Python application](https://github.com/aryvini/railtemp/actions/workflows/python-app.yml/badge.svg?branch=create_package)](https://github.com/aryvini/railtemp/actions/workflows/python-app.yml)
+
+
+
 Module to simulate railway temperatures based on weather parameters, such as: wind velocity, air temperature and solar radiation.
 
 The code presented here is subjected of a Master Thesis work developed at [Instituto Politécnico de Bragança - Portugal](http://portal3.ipb.pt/index.php/pt/). Detailed publication is available [here](https://bibliotecadigital.ipb.pt/handle/10198/23684). The research is based on a previous model developed by Chungnam National University, that can be found [here](https://doi.org/10.1007/s12541-019-00015-1).  
