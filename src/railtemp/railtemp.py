@@ -66,7 +66,7 @@ class Rail:
         method to retrieve X,Y,Z coordinates of a 1 meter long rail track
         '''
 
-        file = str(str(package_directory)+'/sections/' + self.name + '.csv')
+        file = str('./sections/' + self.name + '.csv')
 
         try:
            return pd.read_csv(file)
