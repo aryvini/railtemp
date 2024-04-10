@@ -10,7 +10,7 @@ import os
 import sys
 import warnings
 
-from functions_CNU import *
+from railtemp.utils import *
 
 package_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -66,7 +66,7 @@ class Rail:
         method to retrieve X,Y,Z coordinates of a 1 meter long rail track
         '''
 
-        file = str(str(package_directory)+'/sections/' + self.name + '.csv')
+        file = str('./sections/' + self.name + '.csv')
 
         try:
            return pd.read_csv(file)

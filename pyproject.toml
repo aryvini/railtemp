@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "railtemp"
+version = "1.0.0"
+authors = [
+  { name="Ary Vinicius Nervis Frigeri", email="aryviniciusnf@gmail.com" },
+]
+description = "Package to simulate railway temperatures based on weather conditions"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+  "ipykernel",
+  "ipython",
+  "jupyter_client",
+  "jupyter_core",
+  "matplotlib",
+  "matplotlib-inline",
+  "numpy",
+  "pandas",
+  "scipy",
+  "seaborn",
+  "tzdata",
+  "pysolar",
+  "pytest"
+]
+
+
+[project.urls]
+Homepage = "https://github.com/aryvini/railtemp"
+
+
