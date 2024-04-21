@@ -65,12 +65,14 @@ class Rail:
         '''
         method to retrieve X,Y,Z coordinates of a 1 meter long rail track
         '''
-
-        file = str('./sections/' + self.name + '.csv')
+        sections_dir = package_directory+'/../../sections/'
+        file = str(sections_dir + self.name + '.csv')
+        
 
         try:
            return pd.read_csv(file)
         except:
+            print(file)
             raise(Exception('Rail profile name not found in database'))
 
 
