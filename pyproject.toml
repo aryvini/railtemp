@@ -36,4 +36,6 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/aryvini/railtemp"
 
+[tool.setuptools.package-data]
+railtemp = ["sections/*.*"]
 
