@@ -65,7 +65,8 @@ class Rail:
         '''
         method to retrieve X,Y,Z coordinates of a 1 meter long rail track
         '''
-        sections_dir = package_directory+'/../../sections/'
+        # sections_dir = package_directory+'/../../sections/'
+        sections_dir = './sections/'
         file = str(sections_dir + self.name + '.csv')
         
 
