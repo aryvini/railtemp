@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "railtemp"
@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Package to simulate railway temperatures based on weather conditions"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -36,6 +36,13 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/aryvini/railtemp"
 
-[tool.setuptools.package-data]
-railtemp = ["sections/*.*"]
+[tool.hatch.build]
+exclude = ["tests/"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/railtemp/**","examples/"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/railtemp","examples/"]
+
 
