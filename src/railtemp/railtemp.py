@@ -69,7 +69,8 @@ class Rail:
         print(os.listdir())
 
         try:
-            with importlib.resources.open_text('railtemp.sections', f"{self.name}.csv") as file:
+            source = importlib.resources.files('railtemp.sections').joinpath(f'{self.name}.csv')
+            with importlib.resources.as_file(source) as file:
                 return pd.read_csv(file)
         except FileNotFoundError:
             raise Exception(f"Rail profile '{self.name}.csv' not found in database")
