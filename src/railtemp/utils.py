@@ -4,7 +4,7 @@ import pandas as pd
 from math import *
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 import scipy.constants
-
+import importlib.resources
 
 #Projection of the points based on solar azimuth and elevation
 
@@ -247,5 +247,16 @@ def Cr(temperature):
 
 
 
+def load_section_coordinates(name:str) -> pd.DataFrame:
+    '''
+    method to retrieve X,Y,Z coordinates of a 1-meter-long rail track from the package repository
+    '''
+
+    try:
+        source = importlib.resources.files('railtemp.sections').joinpath(f'{name}.csv')
+        with importlib.resources.as_file(source) as file:
+            return pd.read_csv(file)
+    except FileNotFoundError:
+        raise Exception(f"Rail profile '{name}.csv' not found in database")
 
 

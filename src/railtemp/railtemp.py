@@ -9,11 +9,10 @@ from scipy import optimize
 import os
 import sys
 import warnings
-import importlib.resources
+
 
 from railtemp.utils import *
 
-package_directory = os.path.dirname(os.path.abspath(__file__))
 
 
 
@@ -66,14 +65,8 @@ class Rail:
         '''
         method to retrieve X,Y,Z coordinates of a 1 meter long rail track
         '''
-        print(os.listdir())
 
-        try:
-            source = importlib.resources.files('railtemp.sections').joinpath(f'{self.name}.csv')
-            with importlib.resources.as_file(source) as file:
-                return pd.read_csv(file)
-        except FileNotFoundError:
-            raise Exception(f"Rail profile '{self.name}.csv' not found in database")
+        return load_section_coordinates(self.name)
 
 
 class RailMaterial:
