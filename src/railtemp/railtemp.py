@@ -380,7 +380,7 @@ class CNU:
 
         data = self.df
         # Create Tr_simu column
-        data["Tr_simu"] = 0
+        data["Tr_simu"] = 0.0
 
         # Set initial condition to the Rail Temperature
         # Convert the input from Celsius to Kelvin
