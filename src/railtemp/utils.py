@@ -11,21 +11,21 @@ import importlib.resources
 def project_point(x,y,z,azi,elev):
     """ Project on XY plane a spatial point considering a azimuth and elevation of the sun
 
-    params: 
+    params:
     x,y,z (float) spatial coordinate of the point
     azi (degree) azimuth of the projection vector
     elev (degree) evation of the projection vector
 
     returns: [xp,yp] projected coordinates
     """
-    
+
     #transform the angle to radians
     azi = radians(azi)
     elev = radians(elev)
-    
+
     xp = -(sin(azi)/tan(elev))*z+x
     yp = -(cos(azi)/tan(elev))*z+y
-    
+
     return [xp,yp]
 
 def angle(x_cm,y_cm,x,y):
@@ -43,7 +43,7 @@ def angle(x_cm,y_cm,x,y):
 def shadowArea_sunArea(input_df,sunAzimuth,sunElevation,railAzimuth):
     """
     Evaluate the shadowArea and the sunArea based on the spatial coordinates of the rail, azimuth and elevation of the sun
-    The area of projected points is calculated using scipy.spatial.ConvexHull 
+    The area of projected points is calculated using scipy.spatial.ConvexHull
     args:
     input_df (Pandas Dataframe) containing ['X','Y','Z'] columns as coordinates of 1 meter of railway profile
     sunAzimuth (degrees) of the sun
@@ -57,24 +57,24 @@ def shadowArea_sunArea(input_df,sunAzimuth,sunElevation,railAzimuth):
     coord = input_df
 
     eqAzimtuth = sunAzimuth - railAzimuth
-    
+
     coord['xp'] = coord.apply(lambda k: project_point(k['X'],k['Y'],k['Z'],eqAzimtuth,sunElevation)[0],axis=1)
     coord['yp'] = coord.apply(lambda k: project_point(k['X'],k['Y'],k['Z'],eqAzimtuth,sunElevation)[1],axis=1)
-    
+
     points = coord[['xp','yp']].to_numpy()
-    
+
     hull = ConvexHull(points)
-    
+
     shadowArea = hull.volume
     sunArea = shadowArea*sin(radians(sunElevation))
-    
+
     return [shadowArea,sunArea]
 
 def evaluate_CNU_original_area(data):
     ''' Function to calculate the area of a list of x,y data
     x = data[0]
     y= data[1]
-    
+
     The list must not have crossing lines, otherwise the calculation will be performed wrongly
     '''
     area = 0
@@ -82,20 +82,20 @@ def evaluate_CNU_original_area(data):
 
     ##append the first point to the last row
     data = np.append(data,[data[0]],axis=0)
-    
+
     #execute the range until the real number of points
     for i in range(n):
-        
+
         xi = data[i][0]
         xi1 = data[i+1][0]
-        
+
         yi = data[i][1]
         yi1 = data[i+1][1]
-        
+
         area = area + (xi*yi1-xi1*yi)
-    
+
     area = abs(0.5*area)
-    
+
     return area
 
 def shadowArea_sunArea_oringal_CNU(input_df,sunAzimuth,sunElevation,railAzimuth):
@@ -116,7 +116,7 @@ def shadowArea_sunArea_oringal_CNU(input_df,sunAzimuth,sunElevation,railAzimuth)
     coord = input_df
 
     eqAzimtuth = sunAzimuth - railAzimuth
-    
+
     coord['xp'] = coord.apply(lambda k: project_point(k['X'],k['Y'],k['Z'],eqAzimtuth,sunElevation)[0],axis=1)
     coord['yp'] = coord.apply(lambda k: project_point(k['X'],k['Y'],k['Z'],eqAzimtuth,sunElevation)[1],axis=1)
 
@@ -161,7 +161,7 @@ def hconv(Wv):
 ## Decomposing the model into part-functions so help the solving process
 
 def Af(SA,As,SR):
-    ''' 
+    '''
     Incoming Energy part of the balance equation
 
     Params:
@@ -185,13 +185,13 @@ def Cf(hc,Ac,Trail,Tamb):
     Ac: Area that exchange heat by convections [m²]
     Trail: Rail temperature to be solved [C]
     Tamb: Ambient temperature [C]
-    
+
     Returns:
     hc*Ac*(Trail-Tamb)
     '''
 
     return hc*Ac*(Trail-Tamb)
-    
+
 def Ef(Ar,Trail,Tamb,Er):
     '''
     Emitting radiation part of the balance equation
@@ -209,7 +209,7 @@ def Ef(Ar,Trail,Tamb,Er):
     Sig = scipy.constants.Stefan_Boltzmann
 
     return Er*Sig*Ar*(pow(Trail,4)-pow((Tamb),4))
-    
+
 
 def Kf(pho,Cr,Trail,Vr):
     '''
@@ -219,7 +219,7 @@ def Kf(pho,Cr,Trail,Vr):
     Cr: Heat capacity function of the material
     Trail: Rail temperature to be solved [C]
     Vr: Volume of the rail segment
-    
+
     Returns:
     pho*Cr(Trail)*Vr
     '''
@@ -237,9 +237,9 @@ def Cr(temperature):
     specific heat [J/ (kg K)]
     '''
     t = temperature
-    
+
     if t >= 20:
-        
+
         return (425+7.73e-1*t) - (1.69e-3 * pow(t,2)) + (2.22e-6 * pow(t,3))
     else:
         return Cr(20)
