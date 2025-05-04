@@ -1,19 +1,16 @@
-import pandas as pd
-import numpy as np
-from math import *
-import pytz
 import datetime
-import pysolar as ps
 import time
-from scipy import optimize
-import os
-import sys
 import warnings
+from typing import Dict
 
+import pandas as pd
+import pysolar as ps
+from scipy import optimize
 
-from railtemp.utils import *
 from railtemp.ParameterValue import ParameterValue, parameter_value_factory
-from typing import List, Dict, Union
+from railtemp.utils import Cr, Af, Cf, Ef, Kf, hconv, shadowArea_sunArea
+from railtemp.utils import shadowArea_sunArea_oringal_CNU
+from railtemp.utils import load_section_coordinates
 
 
 class RailMaterial:
@@ -23,9 +20,12 @@ class RailMaterial:
     Parameters:
 
     density: density of material [kg/m³] default=7850, float64
-    solar_absort: radiation absorptivity of the rail surface [#] (0 to 1), default=0.8 float64
-    emissivity: emissivity of the rail material [#] (0 to 1), default=0.7, float64
-    specific_heat: function that defines the heat capacity of the material, default=specific heat of steel defined by EN1993-1-2
+    solar_absort: radiation absorptivity of the rail surface [#] (0 to 1),
+        default=0.8 float64
+    emissivity: emissivity of the rail material [#] (0 to 1), default=0.7,
+        float64
+    specific_heat: function that defines the heat capacity of the material,
+        default=specific heat of steel defined by EN1993-1-2
     """
 
     def __init__(
@@ -33,9 +33,8 @@ class RailMaterial:
         density: ParameterValue = 7850,
         solar_absort: ParameterValue = 0.8,
         emissivity: ParameterValue = 0.7,
-        specific_heat=Cr,
+        specific_heat: callable = Cr,
     ):
-
         self._density = parameter_value_factory(density)
         self._solar_absort = parameter_value_factory(solar_absort)
         self._emissivity = parameter_value_factory(emissivity)
@@ -93,7 +92,6 @@ class Rail:
         ambient_emissivity: ParameterValue,
         material: RailMaterial,
     ):
-
         if not isinstance(material, RailMaterial):
             raise (Exception("material must be an object of RailMaterial class"))
 
@@ -184,11 +182,17 @@ class WeatherData:
     Solar radiation: pandas Series with solar radiation measurements in W/m²;
     Wind velocity: Series with wind velocity in m/s;
     Ambient temperature: Series with ambient temperature in Celsius
-    timezone of the datetime index. to verify all the timezone available, run pytz.all_timezones
+    timezone of the datetime index. to verify all the timezone available,
+        run pytz.all_timezones
     """
 
-    def __init__(self, solar_radiation, ambient_temperature, wind_velocity, timezone):
-
+    def __init__(
+        self,
+        solar_radiation,
+        ambient_temperature,
+        wind_velocity,
+        timezone,
+    ):
         inputs = (solar_radiation, ambient_temperature, wind_velocity)
 
         # Check if inputs are pandas Series
@@ -237,7 +241,6 @@ class WeatherData:
 
         # function to join the series in a dataframe
         def __join_series(series):
-
             return pd.concat(series, axis=1)
 
         self.SR = solar_radiation
@@ -266,15 +269,10 @@ class CNU:
     """
 
     def __init__(self, rail, weather):
-
         if all([isinstance(rail, Rail), isinstance(weather, WeatherData)]):
             pass
         else:
-            raise (
-                Exception(
-                    "The inputs must be an object of classes Rail and WeatherData"
-                )
-            )
+            raise (Exception("The inputs must be an object of classes Rail and WeatherData"))
 
         self.rail = rail
         self.weather = weather
@@ -339,14 +337,12 @@ class CNU:
         return None
 
     def __celsius_to_kelvin(self):
-
         data = self.df
         data["Tamb"] = data.apply(lambda x: x["Tamb"] + 273.15, axis=1)
 
         return None
 
     def __kelvin_to_celsius(self):
-
         data = self.df
         data["Tamb"] = data.apply(lambda x: x["Tamb"] - 273.15, axis=1)
         data["Tr_simu"] = data.apply(lambda x: x["Tr_simu"] - 273.15, axis=1)
@@ -354,14 +350,12 @@ class CNU:
         return None
 
     def __calculate_hconv(self):
-
         data = self.df
         data["Hconv"] = data.apply(lambda x: hconv(x["Wv"]), axis=1)
 
         return None
 
     def __fetch_solar_data(self):
-
         data = self.df
         tz = self.weather.tz
         lat = self.rail.position["lat"]
@@ -380,15 +374,12 @@ class CNU:
         return None
 
     def __calculate_As(self):
-
         data = self.df
         profile = self.rail.profile_coordinates
         rail_azimuth = self.rail.azimuth
         data["As"] = data.apply(
             lambda x: (
-                shadowArea_sunArea(
-                    profile, x["Sun_azimuth"], x["Sun_altitude"], rail_azimuth
-                )[1]
+                shadowArea_sunArea(profile, x["Sun_azimuth"], x["Sun_altitude"], rail_azimuth)[1]
                 if x["Sun_altitude"] > 0
                 else 0
             ),
@@ -398,7 +389,6 @@ class CNU:
         return None
 
     def __calculate_original_CNU_As(self):
-
         data = self.df
         profile = self.rail.profile_coordinates
         rail_azimuth = self.rail.azimuth
@@ -416,7 +406,6 @@ class CNU:
         return None
 
     def __create_delta_time_columns(self):
-
         data = self.df
         data.reset_index(inplace=True)
         data["Delta_time"] = 0
@@ -433,15 +422,14 @@ class CNU:
 
         if len(data["Delta_time"].unique()) > 2:
             warnings.warn(
-                "CAUTION: Datetime index error, time steps are not evenly spaced. The simulation will continue, but attention is required"
+                "CAUTION: Datetime index error, "
+                "time steps are not evenly spaced. "
+                "The simulation will continue, but attention is required"
             )
-            # pass
-            # raise(Exception('Datetime index error, time steps are not evenly spaced'))
 
         return None
 
     def __initial_conditions(self, Trail_initial):
-
         data = self.df
         # Create Tr_simu column
         data["Tr_simu"] = 0.0
@@ -453,7 +441,6 @@ class CNU:
         return None
 
     def __solve(self):
-
         data = self.df
         solar_absort = self.rail.material.solar_absort
         Ac = self.rail.convection_area
@@ -486,7 +473,8 @@ class CNU:
                 data.loc[i, "Tr_simu"] = optimize.newton(
                     func=find_Trail_i, x0=273, maxiter=30000, tol=1e-5, x1=400
                 )
-                # At this point, solution is found. Append the parameter values to the dataframe
+                # At this point, solution is found.
+                # Append the parameter values to the dataframe
                 data.loc[i, "solar_absort"] = solar_absort
                 data.loc[i, "convection_area"] = Ac
                 data.loc[i, "radiation_area"] = Ar
@@ -496,9 +484,10 @@ class CNU:
                 data.loc[i, "specific_heat"] = Cr(data.loc[i, "Tr_simu"] - 273.15)
                 data.loc[i, "volume"] = Vr
 
-
-            except:
-                raise (Exception("Not converged to a solution"))
+            except RuntimeError as e:
+                raise Exception(
+                    f"Not converged to a solution forTr_simu at index {i} with error: {e}"
+                )
 
         return None
 

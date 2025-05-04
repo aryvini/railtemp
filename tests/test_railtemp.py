@@ -1,6 +1,8 @@
 import pytest
-from railtemp.railtemp import *
+from railtemp.railtemp import Rail, RailMaterial, WeatherData, CNU
+import pandas as pd
 from railtemp.ParameterValue import UniformParameterValue, ConstantParameterValue
+import pytz
 
 
 @pytest.mark.parametrize(
@@ -11,8 +13,7 @@ from railtemp.ParameterValue import UniformParameterValue, ConstantParameterValu
     ],
 )
 def test_simulation(input_data, expected_result):
-
-    results_data = f"./tests/artifacts/results.csv"
+    results_data = "./tests/artifacts/results.csv"
 
     df = pd.read_csv(input_data)  # import csv file
     df["Date"] = pd.to_datetime(df["Date"])
@@ -68,8 +69,7 @@ def test_simulation(input_data, expected_result):
     ],
 )
 def test_simulation_with_parameter_value_objects(input_data, expected_result):
-
-    results_data = f"./tests/artifacts/results.csv"
+    results_data = "./tests/artifacts/results.csv"
 
     df = pd.read_csv(input_data)  # import csv file
     df["Date"] = pd.to_datetime(df["Date"])
@@ -87,9 +87,7 @@ def test_simulation_with_parameter_value_objects(input_data, expected_result):
     radiation_area = ConstantParameterValue(value=430.46e-3)
     ambient_emissivity = ConstantParameterValue(value=0.5)
 
-    steel = RailMaterial(
-        density=density, solar_absort=solar_absort, emissivity=emissivity
-    )
+    steel = RailMaterial(density=density, solar_absort=solar_absort, emissivity=emissivity)
     UIC54 = Rail(
         name="UIC54",
         azimuth=azimuth,
@@ -139,7 +137,7 @@ def test_simulation_with_parameter_value_objects(input_data, expected_result):
 )
 @pytest.mark.parametrize("run", range(10))  # Run the test 10 times
 def test_simulation_with_random_value_object(input_data, expected_result, run):
-    results_data = f"./tests/artifacts/results.csv"
+    results_data = "./tests/artifacts/results.csv"
 
     df = pd.read_csv(input_data)  # import csv file
     df["Date"] = pd.to_datetime(df["Date"])
@@ -159,9 +157,7 @@ def test_simulation_with_random_value_object(input_data, expected_result, run):
     ambient_emissivity = UniformParameterValue(0.4, 0.6)
     convection_area = UniformParameterValue(430.46e-3, 450.46e-3)
 
-    steel = RailMaterial(
-        density=density, solar_absort=solar_absort, emissivity=emissivity
-    )
+    steel = RailMaterial(density=density, solar_absort=solar_absort, emissivity=emissivity)
     UIC54 = Rail(
         name="UIC54",
         azimuth=azimuth,

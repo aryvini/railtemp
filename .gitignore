@@ -5,6 +5,7 @@ __pycache__/functions.cpython-37.pyc
 __pycache__/functions_CNU.cpython-37.pyc
 .ipynb_checkpoints/railtemp-checkpoint.py
 **/.ipynb_checkpoints/*
+.ruff_cache/
 
 ### PythonVanilla ###
 # Byte-compiled / optimized / DLL files
