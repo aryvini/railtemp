@@ -442,17 +442,17 @@ class CNU:
 
     def __solve(self):
         data = self.df
-        solar_absort = self.rail.material.solar_absort
-        Ac = self.rail.convection_area
-        Ar = self.rail.radiation_area
-        Er_material = self.rail.material.emissivity
-        Er_ambient = self.rail.ambient_emissivity
-        Er = Er_material * Er_ambient
-        pho = self.rail.material.density
-        Cr = self.rail.material.specific_heat
-        Vr = self.rail.volume
 
         for i in range(1, len(list(data.index))):
+            solar_absort = self.rail.material.solar_absort
+            Ac = self.rail.convection_area
+            Ar = self.rail.radiation_area
+            Er_material = self.rail.material.emissivity
+            Er_ambient = self.rail.ambient_emissivity
+            Er = Er_material * Er_ambient
+            pho = self.rail.material.density
+            Cr = self.rail.material.specific_heat
+            Vr = self.rail.volume
 
             def find_Trail_i(Tr_i):
                 row = data.loc[i]

@@ -197,3 +197,10 @@ def test_simulation_with_random_value_object(input_data, expected_result, run):
 
     # Check if all conditions Matches expected result
     assert all(conditions_list) == expected_result
+
+    #check if given columns has distinct values
+    distinct_columns = ["density", "solar_absort", "convection_area","volume"]
+
+    for col in distinct_columns:
+        distinct_values = set(simu1.result[col].to_list())
+        assert len(distinct_values) > 1, f"Column {col} has no distinct values"
