@@ -43,17 +43,17 @@ def test_simulation(input_data, expected_result):
 
     simu1.run(Trail_initial=23)
 
-    res_df = pd.read_csv(results_data)
-    res_df["Date"] = pd.to_datetime(res_df["Date"])
-    res_df.set_index("Date", inplace=True)
+    source_truth_df = pd.read_csv(results_data)
+    source_truth_df["Date"] = pd.to_datetime(source_truth_df["Date"])
+    source_truth_df.set_index("Date", inplace=True)
 
-    assert set(res_df.columns.to_list()) == set(simu1.result.columns.tolist())
+    assert set(source_truth_df.columns.to_list()).issubset(set(simu1.result.columns.tolist()))
 
     # Conditions list
     conditions_list = []
-    for col in simu1.result.columns:
+    for col in source_truth_df.columns:
         conditions_list.append(
-            simu1.result[col].to_list() == pytest.approx(res_df[col].to_list())
+            simu1.result[col].to_list() == pytest.approx(source_truth_df[col].to_list())
         )
 
     # Check if all conditions Matches expected result
@@ -114,19 +114,18 @@ def test_simulation_with_parameter_value_objects(input_data, expected_result):
 
     simu1.run(Trail_initial=23)
 
-    res_df = pd.read_csv(results_data)
-    res_df["Date"] = pd.to_datetime(res_df["Date"])
-    res_df.set_index("Date", inplace=True)
+    source_truth_df = pd.read_csv(results_data)
+    source_truth_df["Date"] = pd.to_datetime(source_truth_df["Date"])
+    source_truth_df.set_index("Date", inplace=True)
 
-    assert set(res_df.columns.to_list()) == set(simu1.result.columns.tolist())
+    assert set(source_truth_df.columns.to_list()).issubset(set(simu1.result.columns.tolist()))
 
     # Conditions list
     conditions_list = []
-    for col in simu1.result.columns:
+    for col in source_truth_df.columns:
         conditions_list.append(
-            simu1.result[col].to_list() == pytest.approx(res_df[col].to_list())
+            simu1.result[col].to_list() == pytest.approx(source_truth_df[col].to_list())
         )
-
     # Check if all conditions Matches expected result
     assert all(conditions_list) == expected_result
 
@@ -187,17 +186,17 @@ def test_simulation_with_random_value_object(input_data, expected_result, run):
 
     simu1.run(Trail_initial=23.0)
 
-    res_df = pd.read_csv(results_data)
-    res_df["Date"] = pd.to_datetime(res_df["Date"])
-    res_df.set_index("Date", inplace=True)
+    source_truth_df = pd.read_csv(results_data)
+    source_truth_df["Date"] = pd.to_datetime(source_truth_df["Date"])
+    source_truth_df.set_index("Date", inplace=True)
 
-    assert set(res_df.columns.to_list()) == set(simu1.result.columns.tolist())
+    assert set(source_truth_df.columns.to_list()).issubset(set(simu1.result.columns.tolist()))
 
     # Conditions list
     conditions_list = []
-    for col in simu1.result.columns:
+    for col in source_truth_df.columns:
         conditions_list.append(
-            simu1.result[col].to_list() == pytest.approx(res_df[col].to_list())
+            simu1.result[col].to_list() == pytest.approx(source_truth_df[col].to_list())
         )
 
     # Check if all conditions Matches expected result

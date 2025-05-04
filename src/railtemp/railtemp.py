@@ -458,7 +458,9 @@ class CNU:
         solar_absort = self.rail.material.solar_absort
         Ac = self.rail.convection_area
         Ar = self.rail.radiation_area
-        Er = self.rail.material.emissivity * self.rail.ambient_emissivity
+        Er_material = self.rail.material.emissivity
+        Er_ambient = self.rail.ambient_emissivity
+        Er = Er_material * Er_ambient
         pho = self.rail.material.density
         Cr = self.rail.material.specific_heat
         Vr = self.rail.volume
@@ -484,6 +486,17 @@ class CNU:
                 data.loc[i, "Tr_simu"] = optimize.newton(
                     func=find_Trail_i, x0=273, maxiter=30000, tol=1e-5, x1=400
                 )
+                # At this point, solution is found. Append the parameter values to the dataframe
+                data.loc[i, "solar_absort"] = solar_absort
+                data.loc[i, "convection_area"] = Ac
+                data.loc[i, "radiation_area"] = Ar
+                data.loc[i, "material_emissivity"] = Er_material
+                data.loc[i, "ambient_emissivity"] = Er_ambient
+                data.loc[i, "density"] = pho
+                data.loc[i, "specific_heat"] = Cr(data.loc[i, "Tr_simu"] - 273.15)
+                data.loc[i, "volume"] = Vr
+
+
             except:
                 raise (Exception("Not converged to a solution"))
 
