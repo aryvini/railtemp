@@ -12,7 +12,7 @@ import warnings
 
 
 from railtemp.utils import *
-from railtemp.ParameterValue import ParameterValue, validate_or_convert
+from railtemp.ParameterValue import ParameterValue, parameter_value_factory
 from typing import List, Dict, Union
 
 
@@ -33,19 +33,34 @@ class RailMaterial:
         density: ParameterValue = 7850,
         solar_absort: ParameterValue = 0.8,
         emissivity: ParameterValue = 0.7,
-        specific_heat= Cr,
+        specific_heat=Cr,
     ):
 
-        if all([(0 < solar_absort <= 1), (0 < emissivity <= 1)]):
-
-            pass
-        else:
-            raise (Exception("Physical parameter error"))
-
-        self.density = validate_or_convert(density)
-        self.solar_absort = validate_or_convert(solar_absort)
-        self.emissivity = validate_or_convert(emissivity)
+        self._density = parameter_value_factory(density)
+        self._solar_absort = parameter_value_factory(solar_absort)
+        self._emissivity = parameter_value_factory(emissivity)
         self.specific_heat = specific_heat
+
+    @property
+    def density(self) -> float:
+        value = self._density.get_value()
+        if value <= 0:
+            raise ValueError("Density must be positive.")
+        return value
+
+    @property
+    def solar_absort(self) -> float:
+        value = self._solar_absort.get_value()
+        if not (0 < value <= 1):
+            raise ValueError("Solar absorptivity must be between 0 and 1.")
+        return value
+
+    @property
+    def emissivity(self) -> float:
+        value = self._emissivity.get_value()
+        if not (0 < value <= 1):
+            raise ValueError("Emissivity must be between 0 and 1.")
+        return value
 
 
 class Rail:
@@ -81,27 +96,76 @@ class Rail:
 
         if not isinstance(material, RailMaterial):
             raise (Exception("material must be an object of RailMaterial class"))
-        if 0 <= azimuth <= 180:
-            pass
-        else:
-            raise (Exception("invalid azimuth It must be between 0-180"))
 
         self.name = name
-        self.azimuth = validate_or_convert(azimuth)
-        self.position = {
-            "lat": validate_or_convert(lat),
-            "long": validate_or_convert(long),
-            "elev": validate_or_convert(elev),
+        self._azimuth = parameter_value_factory(azimuth)
+        self._position = {
+            "lat": parameter_value_factory(lat),
+            "long": parameter_value_factory(long),
+            "elev": parameter_value_factory(elev),
         }
-        self.cross_area = validate_or_convert(cross_area)
-        self.convection_area = validate_or_convert(convection_area)
-        self.radiation_area = validate_or_convert(radiation_area)
-        self.ambient_emissivity = validate_or_convert(ambient_emissivity)
-        self.volume = validate_or_convert(cross_area)
+        self._cross_area = parameter_value_factory(cross_area)
+        self._convection_area = parameter_value_factory(convection_area)
+        self._radiation_area = parameter_value_factory(radiation_area)
+        self._ambient_emissivity = parameter_value_factory(ambient_emissivity)
+        self._volume = parameter_value_factory(cross_area)
         self.material = material
         self.profile_coordinates = self.__load_section_coordinates()
 
-        return None
+    @property
+    def azimuth(self) -> float:
+        value = self._azimuth.get_value()
+        if not (0 <= value <= 180):
+            raise ValueError("Azimuth must be between 0 and 180 degrees.")
+        return value
+
+    @property
+    def position(self) -> Dict[str, float]:
+        lat = self._position["lat"].get_value()
+        long = self._position["long"].get_value()
+        elev = self._position["elev"].get_value()
+        if not (-90 <= lat <= 90):
+            raise ValueError("Latitude must be between -90 and 90 degrees.")
+        if not (-180 <= long <= 180):
+            raise ValueError("Longitude must be between -180 and 180 degrees.")
+        if elev < 0:
+            raise ValueError("Elevation must be non-negative.")
+        return {"lat": lat, "long": long, "elev": elev}
+
+    @property
+    def cross_area(self) -> float:
+        value = self._cross_area.get_value()
+        if value <= 0:
+            raise ValueError("Cross area must be positive.")
+        return value
+
+    @property
+    def convection_area(self) -> float:
+        value = self._convection_area.get_value()
+        if value <= 0:
+            raise ValueError("Convection area must be positive.")
+        return value
+
+    @property
+    def radiation_area(self) -> float:
+        value = self._radiation_area.get_value()
+        if value <= 0:
+            raise ValueError("Radiation area must be positive.")
+        return value
+
+    @property
+    def ambient_emissivity(self) -> float:
+        value = self._ambient_emissivity.get_value()
+        if not (0 <= value <= 1):
+            raise ValueError("Ambient emissivity must be between 0 and 1.")
+        return value
+
+    @property
+    def volume(self) -> float:
+        value = self._volume.get_value()
+        if value <= 0:
+            raise ValueError("Volume must be positive.")
+        return value
 
     def __load_section_coordinates(self):
         """
@@ -300,9 +364,9 @@ class CNU:
 
         data = self.df
         tz = self.weather.tz
-        lat = self.rail.position["lat"].get_value()
-        long = self.rail.position["long"].get_value()
-        elev = self.rail.position["elev"].get_value()
+        lat = self.rail.position["lat"]
+        long = self.rail.position["long"]
+        elev = self.rail.position["elev"]
         data["Date_time"] = data.index.tz_localize(tz)
         data["Sun_azimuth"] = data.apply(
             lambda x: ps.solar.get_azimuth(lat, long, x["Date_time"], elev), axis=1
@@ -319,7 +383,7 @@ class CNU:
 
         data = self.df
         profile = self.rail.profile_coordinates
-        rail_azimuth = self.rail.azimuth.get_value()
+        rail_azimuth = self.rail.azimuth
         data["As"] = data.apply(
             lambda x: (
                 shadowArea_sunArea(
@@ -337,7 +401,7 @@ class CNU:
 
         data = self.df
         profile = self.rail.profile_coordinates
-        rail_azimuth = self.rail.azimuth.get_value()
+        rail_azimuth = self.rail.azimuth
         data["As"] = data.apply(
             lambda x: (
                 shadowArea_sunArea_oringal_CNU(
@@ -391,13 +455,13 @@ class CNU:
     def __solve(self):
 
         data = self.df
-        solar_absort = self.rail.material.solar_absort.get_value()
-        Ac = self.rail.convection_area.get_value()
-        Ar = self.rail.radiation_area.get_value()
-        Er = self.rail.material.emissivity.get_value() * self.rail.ambient_emissivity.get_value()
-        pho = self.rail.material.density.get_value()
+        solar_absort = self.rail.material.solar_absort
+        Ac = self.rail.convection_area
+        Ar = self.rail.radiation_area
+        Er = self.rail.material.emissivity * self.rail.ambient_emissivity
+        pho = self.rail.material.density
         Cr = self.rail.material.specific_heat
-        Vr = self.rail.volume.get_value()
+        Vr = self.rail.volume
 
         for i in range(1, len(list(data.index))):
 

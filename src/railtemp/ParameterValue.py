@@ -43,14 +43,60 @@ class ConstantParameterValue(ParameterValue):
 
 class RandomParameterValue(ParameterValue):
     """
-    Class representing a random parameter value.
+    Abstract base class for random parameter values.
+    Ensures that the `validate` method is called to validate the generated value.
     """
+
     @abstractmethod
-    def validate(self):
+    def validate(self, value: float):
+        """
+        Abstract method to validate the generated random value.
+        Must be implemented by subclasses.
+        """
         pass
 
+    @abstractmethod
+    def _generate_value(self) -> float:
+        """
+        Abstract method to generate the random value.
+        Must be implemented by subclasses.
+        """
+        pass
 
-def validate_or_convert(value):
+    def get_value(self) -> float:
+        """
+        Generates the random value and validates it.
+        """
+        value = self._generate_value()
+        self.validate(value)  # Validate the generated value
+        return value
+
+
+class UniformParameterValue(RandomParameterValue):
+    """
+    Class representing a uniform random parameter value.
+    """
+
+    def __init__(self, low: float, high: float):
+        self.low = low
+        self.high = high
+
+    def validate(self, value: float):
+        """
+        Validates the generated value to ensure it is within the range [low, high].
+        """
+        if not (self.low <= value <= self.high):
+            raise ValueError(f"Generated value {value} is out of bounds [{self.low}, {self.high}].")
+
+    def _generate_value(self) -> float:
+        """
+        Generates a random value uniformly between `low` and `high`.
+        """
+        return random.uniform(self.low, self.high)
+
+
+
+def parameter_value_factory(value):
     """
     Validates or converts the input value into a `ConstantParameterValue` or
     ensures it is already a `ParameterValue` instance.
