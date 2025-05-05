@@ -9,12 +9,12 @@
 # ===================================================================
 
 
-import random
+from random import uniform
 from typing import Union
 from abc import ABC,abstractmethod
 
 
-class ParameterValue(ABC):
+class AbstractParameterValue(ABC):
     """
     Abstract base class for parameter values.
     """
@@ -27,7 +27,7 @@ class ParameterValue(ABC):
         pass
 
 
-class ConstantParameterValue(ParameterValue):
+class ConstantParameterValue(AbstractParameterValue):
     """
     Class representing a Constant parameter value.
     """
@@ -41,11 +41,34 @@ class ConstantParameterValue(ParameterValue):
     def get_value(self) -> float:
         return self.value
 
-class RandomParameterValue(ParameterValue):
+class RandomParameterValue(AbstractParameterValue):
     """
     Abstract base class for random parameter values.
-    Ensures that the `validate` method is called to validate the generated value.
+    Values are drawn from a distribution at each time step.
+    Ensures that the `validate` method is called in the `get_value` method to validate the generated value.
     """
+
+    def constant_during_simulation(self, value: bool=False) -> Union[None, ConstantParameterValue]:
+        """
+        Method to draw a random value from the distribution and set it as a constant during the simulation.
+        Otherwise, values are drawn at each time step.
+        Converts this instance to a ConstantParameterValue if value is True.
+        """
+        if not isinstance(value, bool):
+            raise ValueError("Value for constant_during_simulation must be a boolean.")
+
+        if value:
+            try:
+                constant_value = ConstantParameterValue(self.get_value())
+                self.__class__ = constant_value.__class__
+                self.__dict__ = constant_value.__dict__
+                return ConstantParameterValue(self.get_value())
+            except (ValueError, TypeError) as e:
+                raise ValueError(f"Failed to create ConstantParameterValue: {e}")
+
+
+
+
 
     @abstractmethod
     def validate(self, value: float):
@@ -88,11 +111,12 @@ class UniformParameterValue(RandomParameterValue):
         if not (self.low <= value <= self.high):
             raise ValueError(f"Generated value {value} is out of bounds [{self.low}, {self.high}].")
 
+
     def _generate_value(self) -> float:
         """
         Generates a random value uniformly between `low` and `high`.
         """
-        return random.uniform(self.low, self.high)
+        return uniform(self.low, self.high)
 
 
 
@@ -118,7 +142,7 @@ def parameter_value_factory(value):
         return ConstantParameterValue(value)
     elif isinstance(value, int):
         return ConstantParameterValue(float(value))
-    elif isinstance(value, ParameterValue):
+    elif isinstance(value, AbstractParameterValue):
         return value
     else:
         raise TypeError(f"Got {type(value)}")

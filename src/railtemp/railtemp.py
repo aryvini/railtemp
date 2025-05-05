@@ -7,7 +7,7 @@ import pandas as pd
 import pysolar as ps
 from scipy import optimize
 
-from railtemp.ParameterValue import ParameterValue, parameter_value_factory
+from railtemp.ParameterValue import AbstractParameterValue, parameter_value_factory
 from railtemp.utils import Cr, Af, Cf, Ef, Kf, hconv, shadowArea_sunArea
 from railtemp.utils import shadowArea_sunArea_oringal_CNU
 from railtemp.utils import load_section_coordinates
@@ -30,9 +30,9 @@ class RailMaterial:
 
     def __init__(
         self,
-        density: ParameterValue = 7850,
-        solar_absort: ParameterValue = 0.8,
-        emissivity: ParameterValue = 0.7,
+        density: AbstractParameterValue = 7850,
+        solar_absort: AbstractParameterValue = 0.8,
+        emissivity: AbstractParameterValue = 0.7,
         specific_heat: callable = Cr,
     ):
         self._density = parameter_value_factory(density)
@@ -82,14 +82,14 @@ class Rail:
     def __init__(
         self,
         name: str,
-        azimuth: ParameterValue,
-        lat: ParameterValue,
-        long: ParameterValue,
-        elev: ParameterValue,
-        cross_area: ParameterValue,
-        convection_area: ParameterValue,
-        radiation_area: ParameterValue,
-        ambient_emissivity: ParameterValue,
+        azimuth: AbstractParameterValue,
+        lat: AbstractParameterValue,
+        long: AbstractParameterValue,
+        elev: AbstractParameterValue,
+        cross_area: AbstractParameterValue,
+        convection_area: AbstractParameterValue,
+        radiation_area: AbstractParameterValue,
+        ambient_emissivity: AbstractParameterValue,
         material: RailMaterial,
     ):
         if not isinstance(material, RailMaterial):

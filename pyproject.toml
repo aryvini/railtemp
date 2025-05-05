@@ -31,6 +31,7 @@ dependencies = [
   "pysolar",
   "pytest",
   "ruff>=0.11.8",
+  "pytest-cov>=6.1.1",
 ]
 
 

@@ -144,6 +144,7 @@ def test_simulation_with_random_value_object(input_data, expected_result, run):
     df.set_index("Date", inplace=True)
 
     density = UniformParameterValue(7800, 7900)
+    density.constant_during_simulation(value=True)
     solar_absort = UniformParameterValue(0.7, 0.9)
     emissivity = UniformParameterValue(0.6, 0.8)
 
@@ -152,7 +153,7 @@ def test_simulation_with_random_value_object(input_data, expected_result, run):
     lat = UniformParameterValue(41.48, 41.49)
     long = UniformParameterValue(-7.2, -7.1)
     elev = UniformParameterValue(200, 250)
-    cross_area = UniformParameterValue(7.0e-3, 7.5e-3)
+    cross_area = UniformParameterValue(7.0e-3, 7.5e-3).constant_during_simulation(value=True)
     radiation_area = UniformParameterValue(430.46e-3, 450.46e-3)
     ambient_emissivity = UniformParameterValue(0.4, 0.6)
     convection_area = UniformParameterValue(430.46e-3, 450.46e-3)
@@ -199,8 +200,14 @@ def test_simulation_with_random_value_object(input_data, expected_result, run):
     assert all(conditions_list) == expected_result
 
     #check if given columns has distinct values
-    distinct_columns = ["density", "solar_absort", "convection_area","volume"]
+    distinct_columns = [ "solar_absort", "convection_area"]
 
     for col in distinct_columns:
-        distinct_values = set(simu1.result[col].to_list())
-        assert len(distinct_values) > 1, f"Column {col} has no distinct values"
+        distinct_values = set([x for x in simu1.result[col].to_list() if pd.notna(x)])
+        assert len(distinct_values) > 5, f"Column {col} has no distinct values"
+
+    # check if given columns has UNIQUE values
+    unique_columns = ["density","volume"] #volume value comes from cross_area
+    for col in unique_columns:
+        distinct_values = set([x for x in simu1.result[col].to_list() if pd.notna(x)])
+        assert len(distinct_values) == 1, f"Column {col} HAS distinct values"
