@@ -13,6 +13,8 @@ from random import uniform
 from typing import Union
 from abc import ABC,abstractmethod
 
+from numpy.random import beta, normal
+from scipy.stats import truncnorm
 
 class AbstractParameterValue(ABC):
     """
@@ -25,6 +27,10 @@ class AbstractParameterValue(ABC):
         Abstract method to retrieve the parameter value.
         """
         pass
+
+    @abstractmethod
+    def __str__(self)-> str:
+        return super().__str__()
 
 
 class ConstantParameterValue(AbstractParameterValue):
@@ -40,6 +46,40 @@ class ConstantParameterValue(AbstractParameterValue):
 
     def get_value(self) -> float:
         return self.value
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the ConstantParameterValue.
+        """
+        return f"ConstantParameterValue(value={self.value})"
+
+def parameter_value_factory(value):
+    """
+    Validates or converts the input value into a `ConstantParameterValue` or
+    ensures it is already a `ParameterValue` instance.
+
+    Parameters:
+        value (any): The input value to validate or convert. It can be a float
+                     or an instance of `ParameterValue`.
+
+    Returns:
+        ConstantParameterValue or ParameterValue: If the input is a float, it
+        is converted to a `ConstantParameterValue`. If it is already a
+        `ParameterValue` instance, it is returned as-is.
+
+    Raises:
+        TypeError: If the input value is neither a float nor a `ParameterValue`
+                   instance.
+    """
+    if isinstance(value, float):
+        return ConstantParameterValue(value)
+    elif isinstance(value, int):
+        return ConstantParameterValue(float(value))
+    elif isinstance(value, AbstractParameterValue):
+        return value
+    else:
+        raise TypeError(f"Got {type(value)}")
+
 
 class RandomParameterValue(AbstractParameterValue):
     """
@@ -65,7 +105,8 @@ class RandomParameterValue(AbstractParameterValue):
                 return ConstantParameterValue(self.get_value())
             except (ValueError, TypeError) as e:
                 raise ValueError(f"Failed to create ConstantParameterValue: {e}")
-
+        else:
+            return self
 
 
 
@@ -118,31 +159,67 @@ class UniformParameterValue(RandomParameterValue):
         """
         return uniform(self.low, self.high)
 
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the UniformParameterValue.
+        """
+        return f"UniformParameterValue(low={self.low}, high={self.high})"
 
 
-def parameter_value_factory(value):
+class BetaParameterValue(RandomParameterValue):
     """
-    Validates or converts the input value into a `ConstantParameterValue` or
-    ensures it is already a `ParameterValue` instance.
-
-    Parameters:
-        value (any): The input value to validate or convert. It can be a float
-                     or an instance of `ParameterValue`.
-
-    Returns:
-        ConstantParameterValue or ParameterValue: If the input is a float, it
-        is converted to a `ConstantParameterValue`. If it is already a
-        `ParameterValue` instance, it is returned as-is.
-
-    Raises:
-        TypeError: If the input value is neither a float nor a `ParameterValue`
-                   instance.
+    A class to represent a Beta distribution for rail temperature.
     """
-    if isinstance(value, float):
-        return ConstantParameterValue(value)
-    elif isinstance(value, int):
-        return ConstantParameterValue(float(value))
-    elif isinstance(value, AbstractParameterValue):
-        return value
-    else:
-        raise TypeError(f"Got {type(value)}")
+
+    def __init__(self, alpha: float, beta: float):
+        """Init the BetaDistribution with alpha and beta parameters.
+
+        Args:
+            alpha (float): alpha parameter of the Beta distribution.
+            beta (float): beta parameter of the Beta distribution.
+        """
+        self.alpha = alpha
+        self.beta = beta
+
+    def validate(self, value: float):
+        pass
+
+    def _generate_value(self) -> float:
+        return beta(self.alpha, self.beta)
+
+
+class NormalParameterValue(RandomParameterValue):
+    """
+    Class representing a normal random parameter value.
+    """
+
+    def __init__(self, mean: float, std: float):
+        self.mean = mean
+        self.std = std
+
+    def validate(self, value: float):
+        pass
+
+    def _generate_value(self) -> float:
+        return normal(self.mean, self.std)
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the NormalParameterValue.
+        """
+        return f"NormalParameterValue(mean={self.mean}, std={self.std})"
+
+class ClippedNormalParameterValue(RandomParameterValue):
+
+    def __init__(self, mean: float, std: float, low: float, high: float):
+        self.mean = mean
+        self.std = std
+        self.low = low
+        self.high = high
+
+    def validate(self, value: float):
+        pass
+
+    def _generate_value(self):
+        a, b = (self.low - self.mean) / self.std, (self.high - self.mean) / self.std
+        return truncnorm.rvs(a, b, loc=self.mean, scale=self.std)
