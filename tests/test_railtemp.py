@@ -158,7 +158,7 @@ def test_simulation_with_random_value_object(input_data, expected_result, run):
     ambient_emissivity = UniformParameterValue(0.4, 0.6)
     convection_area = UniformParameterValue(430.46e-3, 450.46e-3)
 
-    steel = RailMaterial(density=density, solar_absort=solar_absort, emissivity=emissivity)
+    steel = RailMaterial(density=density, solar_absort=solar_absort, emissivity=emissivity, specific_heat=ConstantParameterValue(value=500))
     UIC54 = Rail(
         name="UIC54",
         azimuth=azimuth,

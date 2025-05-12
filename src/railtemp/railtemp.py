@@ -1,8 +1,7 @@
 import datetime
 import time
 import warnings
-from typing import Dict
-
+from typing import Dict, Union
 import pandas as pd
 import pysolar as ps
 from scipy import optimize
@@ -25,20 +24,22 @@ class RailMaterial:
     emissivity: emissivity of the rail material [#] (0 to 1), default=0.7,
         float64
     specific_heat: function that defines the heat capacity of the material,
-        default=specific heat of steel defined by EN1993-1-2
+        default=specific heat of steel defined by EN1993-1-2. Around 440
     """
+
+
 
     def __init__(
         self,
         density: AbstractParameterValue = 7850,
         solar_absort: AbstractParameterValue = 0.8,
         emissivity: AbstractParameterValue = 0.7,
-        specific_heat: callable = Cr,
+        specific_heat: Union[callable, AbstractParameterValue] = Cr,
     ):
         self._density = parameter_value_factory(density)
         self._solar_absort = parameter_value_factory(solar_absort)
         self._emissivity = parameter_value_factory(emissivity)
-        self.specific_heat = specific_heat
+        self.specific_heat = specific_heat if callable(specific_heat) else lambda _: parameter_value_factory(specific_heat).get_value()
 
     @property
     def density(self) -> float:
