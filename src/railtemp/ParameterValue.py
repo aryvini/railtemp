@@ -187,6 +187,12 @@ class BetaParameterValue(RandomParameterValue):
     def _generate_value(self) -> float:
         return beta(self.alpha, self.beta)
 
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the BetaParameterValue.
+        """
+        return f"BetaParameterValue(alpha={self.alpha}, beta={self.beta})"
+
 
 class NormalParameterValue(RandomParameterValue):
     """
@@ -223,3 +229,9 @@ class ClippedNormalParameterValue(RandomParameterValue):
     def _generate_value(self):
         a, b = (self.low - self.mean) / self.std, (self.high - self.mean) / self.std
         return truncnorm.rvs(a, b, loc=self.mean, scale=self.std)
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the ClippedNormalParameterValue.
+        """
+        return f"ClippedNormalParameterValue(mean={self.mean}, std={self.std}, low={self.low}, high={self.high})"

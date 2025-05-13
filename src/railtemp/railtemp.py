@@ -269,7 +269,7 @@ class CNU:
 
     """
 
-    def __init__(self, rail, weather):
+    def __init__(self, rail: Rail, weather: WeatherData):
         if all([isinstance(rail, Rail), isinstance(weather, WeatherData)]):
             pass
         else:

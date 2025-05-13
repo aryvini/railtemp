@@ -1,5 +1,5 @@
 import pytest
-from railtemp.ParameterValue import UniformParameterValue, ConstantParameterValue
+from railtemp.ParameterValue import BetaParameterValue, ClippedNormalParameterValue, NormalParameterValue, UniformParameterValue, ConstantParameterValue
 
 
 @pytest.mark.parametrize("run", range(10))
@@ -14,3 +14,24 @@ def test_convert_random_to_constant(run):
 
     assert isinstance(random_value, ConstantParameterValue)
     assert lower_bound < random_value.get_value() <= upper_bound
+
+@pytest.mark.parametrize(
+    "param_class, args",
+    [
+        (UniformParameterValue, (0, 10)),
+        (ConstantParameterValue, {"value": 10}),
+        (BetaParameterValue, {"alpha": 5, "beta": 10}),
+        (NormalParameterValue, {"mean": 0, "std": 1}),
+        (ClippedNormalParameterValue, {"mean": 0, "std": 1, "low": -1, "high": 1}),
+    ],
+)
+def test_instantiate_parameter_value(param_class, args):
+    """
+    Test the instantiation of a parameter value.
+    """
+    if isinstance(args, tuple):
+        instance = param_class(*args)
+    else:
+        instance = param_class(**args)
+
+    assert isinstance(instance, param_class)
