@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "railtemp"
-version = "1.0.0"
+version = "1.1.0"
 authors = [
   { name="Ary Vinicius Nervis Frigeri", email="aryviniciusnf@gmail.com" },
 ]
@@ -29,7 +29,10 @@ dependencies = [
   "seaborn",
   "tzdata",
   "pysolar",
-  "pytest"
+  "pytest",
+  "ruff>=0.11.8",
+  "pytest-cov>=6.1.1",
+  "deepdiff>=8.5.0",
 ]
 
 
@@ -45,4 +48,8 @@ include = ["src/railtemp/**","examples/"]
 [tool.hatch.build.targets.wheel]
 packages = ["src/railtemp","examples/"]
 
-
+[tool.ruff]
+line-length = 100
+exclude = [
+    "examples",
+]
