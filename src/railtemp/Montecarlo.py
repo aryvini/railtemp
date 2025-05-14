@@ -123,7 +123,7 @@ class SimuRun:
             raise ValueError("Simulation has not been run yet.")
         if not isinstance(self.result_df, pd.DataFrame):
             raise ValueError("Error getting simulation resulting dataframe.")
-        simu_results = self.result_df.to_dict(orient="index")
+        simu_results = self.result_df.fillna("NaN").to_dict(orient="index")
         # transform timestamp indexes into str
         simu_results = {str(k): v for k, v in simu_results.items()}
         summary = self.get_summary()
@@ -140,7 +140,7 @@ class Montecarlo:
         rail_object: Rail,
         weather_input_list: List[str],
         weather_time_zone: str = "Europe/Lisbon",
-        num_simulations=2,
+        num_variations=2,
         name: str = "Campaing",
     ):
         if not isinstance(rail_object, Rail):
@@ -149,7 +149,7 @@ class Montecarlo:
             raise ValueError("weather_input_data list cannot be empty.")
         if not all(isinstance(input, str) for input in weather_input_list):
             raise ValueError("weather_input_data must be a list of strings.")
-        if not isinstance(num_simulations, int) or num_simulations <= 0:
+        if not isinstance(num_variations, int) or num_variations <= 0:
             raise ValueError("num_simulations must be a positive integer.")
 
         self.name = name
@@ -158,7 +158,7 @@ class Montecarlo:
         self.weather_objects: Dict[str, WeatherData] = Montecarlo.__parse_weather_data(
             input_list=weather_input_list, tz=self.weather_time_zone
         )
-        self.num_simulations = num_simulations
+        self.num_simulations = num_variations
 
     @staticmethod
     def __parse_weather_data(input_list, tz) -> Dict[str, WeatherData]:
