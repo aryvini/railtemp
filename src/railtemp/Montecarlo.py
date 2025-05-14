@@ -9,7 +9,6 @@
 # ===================================================================
 
 
-import json
 import time
 
 import pytz
@@ -19,6 +18,7 @@ from copy import deepcopy
 from pandas import DataFrame
 import pandas as pd
 from enum import Flag, auto
+import uuid
 
 
 class SimuRunStatus(Flag):
@@ -37,12 +37,13 @@ class SimuRun:
     """
 
     def __repr__(self):
-        return f"SimuRun(status: {self.status.name})"
+        return f"SimuRun({self._uuid},status:{self.status.name})"
 
     def __init__(self, simulation_object: CNU):
         if not isinstance(simulation_object, CNU):
             raise ValueError("simulation_object must be an instance of CNU.")
 
+        self._uuid = uuid.uuid4().hex[:8]  # Generate a short UUID (8 characters)
         self.status: SimuRunStatus = SimuRunStatus.NOT_STARTED
         self.simulation_object: CNU = simulation_object
         self.start_time: float = None
@@ -83,14 +84,36 @@ class SimuRun:
         """
         return self.simulation_object.weather.Tamb.iloc[0]
 
-    def get_parameters_summary(self) -> dict:
-        dt = {
+    def get_summary(self) -> dict:
+        summary = {}
+
+        pars = {
             "material_density": str(self.simulation_object.rail.material._density),
             "material_solar_absortion": str(self.simulation_object.rail.material._solar_absort),
             "material_emissivity": str(self.simulation_object.rail.material._emissivity),
+            "rail_convection_area": str(self.simulation_object.rail._convection_area),
+            "rail_radiation_area": str(self.simulation_object.rail._radiation_area),
+            "rail_ambient_emissivity": str(self.simulation_object.rail._ambient_emissivity),
+        }
+        if callable(self.simulation_object.rail.material.specific_heat):
+            pars["material_specific_heat"] = str(
+                self.simulation_object.rail.material.specific_heat.__self__.__class__
+            )
+        else:
+            pars["material_specific_heat"] = "custom function"
+
+        duration = {
+            "id": self._uuid,
+            "start_time": str(self.start_time),
+            "end_time": str(self.end_time),
+            "duration_time": str(self.end_time - self.start_time),
+            "status": str(self.status),
         }
 
-        return dt
+        summary["parameters"] = pars
+        summary["duration"] = duration
+
+        return summary
 
     def get_results_as_dict(self) -> dict:
         """
@@ -103,8 +126,8 @@ class SimuRun:
         simu_results = self.result_df.to_dict(orient="index")
         # transform timestamp indexes into str
         simu_results = {str(k): v for k, v in simu_results.items()}
-        parameters = self.get_parameters_summary()
-        return {"simu_parameter": parameters, "simu_results": simu_results}
+        summary = self.get_summary()
+        return {"summary": summary, "simu_results": simu_results}
 
 
 class Montecarlo:
@@ -170,16 +193,3 @@ class Montecarlo:
             ]
             for input_file, weather_data in self.weather_objects.items()
         }
-
-    def save_simulation_as_json(self, simulation, file_path):
-        """
-        Save an individual simulation run as a JSON file.
-        """
-        data = {
-            "start_time": simulation.start_time,
-            "end_time": simulation.end_time,
-            "duration": simulation.end_time - simulation.start_time,
-            "results": simulation.df.to_dict(),  # Assuming simulation.df is a DataFrame
-        }
-        with open(file_path, "w") as json_file:
-            json.dump(data, json_file, indent=4)
