@@ -13,7 +13,7 @@ import time
 
 import pytz
 from railtemp.railtemp import CNU, Rail, WeatherData
-from typing import List, Dict
+from typing import List, Dict, Any
 from copy import deepcopy
 from pandas import DataFrame
 import pandas as pd
@@ -158,7 +158,8 @@ class Montecarlo:
         self.weather_objects: Dict[str, WeatherData] = Montecarlo.__parse_weather_data(
             input_list=weather_input_list, tz=self.weather_time_zone
         )
-        self.num_simulations = num_variations
+        self.num_variations = num_variations
+        self.num_total_simulations = len(self.weather_objects) * self.num_variations
 
     @staticmethod
     def __parse_weather_data(input_list, tz) -> Dict[str, WeatherData]:
@@ -181,15 +182,11 @@ class Montecarlo:
                 raise ValueError(f"Error parsing weather data: {e}")
         return weather_objects
 
-    def generate_simulation_objects(self) -> dict[str, List[SimuRun]]:
+    def generate_simulation_objects(self) -> Dict[str, Any]:
         """
-        Generate a list of simulation run objects.
-        Create a new simulation object for each weather data object.
+        Lazily generate simulation run objects as a generator.
+        Yields tuples of (input_file, SimuRun).
         """
-        return {
-            input_file: [
-                SimuRun(CNU(deepcopy(self.rail_object), weather_data))
-                for _ in range(self.num_simulations)
-            ]
-            for input_file, weather_data in self.weather_objects.items()
-        }
+        for input_file, weather_data in self.weather_objects.items():
+            for _ in range(self.num_variations):
+                yield input_file, SimuRun(CNU(deepcopy(self.rail_object), weather_data))
