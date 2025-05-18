@@ -82,11 +82,12 @@ def test_montecarlo(run_id, weather_file, expected_diff, iteration):
     )
     simu_objs: dict[str, List[SimuRun]]
     simu_objs = mtcarlo.generate_simulation_objects()
+    simu_objs = [sr for _, sr in simu_objs]
 
-    [sr.run() for ilist in simu_objs.values() for sr in ilist]
+    [sr.run() for sr in simu_objs]
 
     rst_dict = {
-        "results": [sr.get_results_as_dict() for ilist in simu_objs.values() for sr in ilist]
+        "results": [sr.get_results_as_dict() for sr in simu_objs]
     }
 
     rst_dict = {"results": [entry["simu_results"] for entry in rst_dict["results"]]}

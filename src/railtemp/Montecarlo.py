@@ -13,7 +13,7 @@ import time
 
 import pytz
 from railtemp.railtemp import CNU, Rail, WeatherData
-from typing import List, Dict, Any
+from typing import List, Dict, Generator, Tuple
 from copy import deepcopy
 from pandas import DataFrame
 import pandas as pd
@@ -182,7 +182,7 @@ class Montecarlo:
                 raise ValueError(f"Error parsing weather data: {e}")
         return weather_objects
 
-    def generate_simulation_objects(self) -> Dict[str, Any]:
+    def generate_simulation_objects(self) -> Generator[Tuple[str, SimuRun], None, None]:
         """
         Lazily generate simulation run objects as a generator.
         Yields tuples of (input_file, SimuRun).
