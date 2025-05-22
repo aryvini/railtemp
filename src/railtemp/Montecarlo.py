@@ -43,7 +43,7 @@ class SimuRun:
         if not isinstance(simulation_object, CNU):
             raise ValueError("simulation_object must be an instance of CNU.")
 
-        self._uuid = uuid.uuid4().hex[:8]  # Generate a short UUID (8 characters)
+        self._uuid = uuid.uuid4().hex[:10]  # Generate a short UUID (8 characters)
         self.status: SimuRunStatus = SimuRunStatus.NOT_STARTED
         self.simulation_object: CNU = simulation_object
         self.start_time: float = None
@@ -84,34 +84,35 @@ class SimuRun:
         """
         return self.simulation_object.weather.Tamb.iloc[0]
 
-    def get_summary(self) -> dict:
+    def get_summary(self) -> dict[str, object]:
         summary = {}
 
         pars = {
-            "material_density": str(self.simulation_object.rail.material._density),
-            "material_solar_absortion": str(self.simulation_object.rail.material._solar_absort),
-            "material_emissivity": str(self.simulation_object.rail.material._emissivity),
-            "rail_convection_area": str(self.simulation_object.rail._convection_area),
-            "rail_radiation_area": str(self.simulation_object.rail._radiation_area),
-            "rail_ambient_emissivity": str(self.simulation_object.rail._ambient_emissivity),
+            "mc_material_solar_absortion": str(self.simulation_object.rail.material._solar_absort),
+            "mc_material_density": str(self.simulation_object.rail.material._density),
+            "mc_material_emissivity": str(self.simulation_object.rail.material._emissivity),
+            "mc_rail_convection_area": str(self.simulation_object.rail._convection_area),
+            "mc_rail_radiation_area": str(self.simulation_object.rail._radiation_area),
+            "mc_rail_ambient_emissivity": str(self.simulation_object.rail._ambient_emissivity),
         }
+
+        # deal with specific heat
         if callable(self.simulation_object.rail.material.specific_heat):
-            pars["material_specific_heat"] = str(
+            pars["mc_material_specific_heat"] = str(
                 self.simulation_object.rail.material.specific_heat.__self__.__class__
             )
         else:
-            pars["material_specific_heat"] = "custom function"
+            pars["mc_material_specific_heat"] = "custom function"
 
-        duration = {
-            "id": self._uuid,
-            "start_time": str(self.start_time),
-            "end_time": str(self.end_time),
-            "duration_time": str(self.end_time - self.start_time),
-            "status": str(self.status),
-        }
+
+        pars["mc_run_id"] = self._uuid
+        pars["mc_start_time"] = str(self.start_time)
+        pars["mc_end_time"] = str(self.end_time)
+        pars["mc_duration_time"] = str(self.end_time - self.start_time)
+        pars["mc_stats"] = str(self.status)
+
 
         summary["parameters"] = pars
-        summary["duration"] = duration
 
         return summary
 
@@ -128,6 +129,15 @@ class SimuRun:
         simu_results = {str(k): v for k, v in simu_results.items()}
         summary = self.get_summary()
         return {"summary": summary, "simu_results": simu_results}
+
+    def get_results_as_df(self):
+        """
+        Get the resulting dataframe and include the simulation summary as new columns
+        """
+        summary_dict = self.get_summary()
+        # Use pandas' assign method to add new columns at once
+        rst_df = self.result_df.assign(**summary_dict["parameters"])
+        return rst_df
 
 
 class Montecarlo:
