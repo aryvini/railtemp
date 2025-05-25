@@ -6,7 +6,12 @@ import pandas as pd
 import pysolar as ps
 from scipy import optimize
 
-from railtemp.ParameterValue import AbstractParameterValue, parameter_value_factory
+from railtemp.ParameterValue import (
+    AbstractParameterValue,
+    ConstantParameterValue,
+    RandomParameterValue,
+    parameter_value_factory,
+)
 from railtemp.utils import Cr, Af, Cf, Ef, Kf, hconv, shadowArea_sunArea
 from railtemp.utils import shadowArea_sunArea_oringal_CNU
 from railtemp.utils import load_section_coordinates
@@ -27,8 +32,6 @@ class RailMaterial:
         default=specific heat of steel defined by EN1993-1-2. Around 440
     """
 
-
-
     def __init__(
         self,
         density: AbstractParameterValue = 7850,
@@ -39,7 +42,11 @@ class RailMaterial:
         self._density = parameter_value_factory(density)
         self._solar_absort = parameter_value_factory(solar_absort)
         self._emissivity = parameter_value_factory(emissivity)
-        self.specific_heat = specific_heat if callable(specific_heat) else lambda _: parameter_value_factory(specific_heat).get_value()
+        self.specific_heat = (
+            specific_heat
+            if callable(specific_heat)
+            else lambda _: parameter_value_factory(specific_heat).get_value()
+        )
 
     @property
     def density(self) -> float:
@@ -495,13 +502,20 @@ class CNU:
     def __fixed_As(self, Area):
         data = self.df
 
-        data["As"] = Area
+        if isinstance(Area, ConstantParameterValue):
+            data["As"] = Area.get_value()
+            return None
+        elif isinstance(Area, RandomParameterValue):
+            # Apply Area.get_value() for each row in the DataFrame
+            data["As"] = data.apply(lambda row: Area.get_value(), axis=1)
+        else:
+            raise (TypeError)
 
         return None
 
-    def run_fixed_area(self, Trail_initial, Area=0.1):
+    def run_fixed_area(self, Trail_initial, Area: AbstractParameterValue = 0.1):
         """
-        Run the simulation with fixed value of As parameter
+        Run the simulation with custom definition of As parameter
 
         Parameters:
         Trail_initial: Initial temperature of the rail [C]
@@ -512,6 +526,9 @@ class CNU:
         None
 
         """
+
+        Area = parameter_value_factory(Area)
+
         self.df = self.weather.df.copy()
         start_time = time.time()
 
