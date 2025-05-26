@@ -10,6 +10,7 @@ from railtemp.Montecarlo import Montecarlo, SimuRun  # noqa: E402
 from railtemp.ParameterValue import (  # noqa: E402
     BetaParameterValue,
     ClippedNormalParameterValue,
+    RandomParameterMode,
     UniformParameterValue,
 )  # noqa: E402
 
@@ -19,7 +20,7 @@ import json  # noqa: E402
 
 class SpecificHeatWrapper:
     def __init__(self):
-        SpecificHeatD = UniformParameterValue(439, 487).constant_during_simulation(True)
+        SpecificHeatD = UniformParameterValue(439, 487).set_mode(RandomParameterMode.FIXED_GLOBAL)
         self.constant = SpecificHeatD.get_value()
 
     def get(self, _):
@@ -28,16 +29,16 @@ class SpecificHeatWrapper:
 
 def create_rail_object() -> Rail:
     # Distribuições específicas
-    DensityD = UniformParameterValue(7840, 7860).constant_during_simulation(False)
-    SolarAbsD = BetaParameterValue(5, 2).constant_during_simulation(True)
-    RailEmiss = BetaParameterValue(0.7, 0.1).constant_during_simulation(True)
+    DensityD = UniformParameterValue(7840, 7860).set_mode(RandomParameterMode.VARIABLE)
+    SolarAbsD = BetaParameterValue(alpha=5, beta=2).set_mode(RandomParameterMode.FIXED_PER_RUN)
+    RailEmiss = BetaParameterValue(mean=0.7, sigma=0.1).set_mode(RandomParameterMode.FIXED_GLOBAL)
     ConvectionAreaD = ClippedNormalParameterValue(
         0.43046, 0.05, 0, 0.43046
-    ).constant_during_simulation(True)
+    ).set_mode(RandomParameterMode.FIXED_PER_RUN)
     RadiationAreaD = ClippedNormalParameterValue(
         0.43046, 0.05, 0, 0.43046
-    ).constant_during_simulation(True)
-    AmbientEmiss = BetaParameterValue(0.5, 0.1).constant_during_simulation(True)
+    ).set_mode(RandomParameterMode.FIXED_GLOBAL)
+    AmbientEmiss = BetaParameterValue(mean=0.5, sigma=0.1).set_mode(RandomParameterMode.FIXED_GLOBAL)
 
     steel = RailMaterial(
         density=DensityD,
@@ -82,7 +83,7 @@ def test_montecarlo(run_id, weather_file, expected_diff, iteration):
     )
     simu_objs: dict[str, List[SimuRun]]
     simu_objs = mtcarlo.generate_simulation_objects()
-    simu_objs = [sr for _, sr in simu_objs]
+    simu_objs: List[SimuRun] = [sr for _, sr in simu_objs]
 
     [sr.run() for sr in simu_objs]
 
@@ -91,6 +92,10 @@ def test_montecarlo(run_id, weather_file, expected_diff, iteration):
     }
 
     rst_dict = {"results": [entry["simu_results"] for entry in rst_dict["results"]]}
+
+    # with open("./tests/artifacts/monte_carlo_result_fixing.json", "w+") as file:
+    #     loaded = json.dumps(rst_dict, indent=4)
+    #     file.write(loaded)
 
     # read json artifact to compare against
     with open("./tests/artifacts/monte_carlo_result.json", "r") as file:
@@ -102,3 +107,52 @@ def test_montecarlo(run_id, weather_file, expected_diff, iteration):
         assert diff == {}
     else:
         assert diff != {}
+
+
+    # check if the defined mode is respected
+    # 1. FIXED_GLOBAL: all simulations should have the same value
+
+
+    fixed_global_attributes = ["material_emissivity","radiation_area"]
+
+    for attr in fixed_global_attributes:
+        # check if all simulations have the same value for this attribute
+        # Collect all values for the given attribute across all simulations and all rows
+        vals = []
+        for sr in simu_objs:
+            lst = sr.result_df[attr].dropna().to_list()
+            vals.extend(lst)
+
+        set_vals = set(vals)
+        assert len(set_vals) == 1, f"Attribute {attr} has different values across simulations: {set_vals}"
+
+    # 2. FIXED_PER_RUN: each simulation run should have a different value
+    fixed_per_run_attributes = ["solar_absort","convection_area"]
+
+    for attr in fixed_per_run_attributes:
+        # check if all simulations have the same value for this attribute
+        # Collect all values for the given attribute across all simulations and all rows
+        vals = []
+        for sr in simu_objs:
+            lst = sr.result_df[attr].dropna().to_list()
+            vals.extend(lst)
+
+        set_vals = set(vals)
+        assert len(set_vals) == 2, f"Attribute {attr} has different values across simulations: {set_vals}"
+
+
+    # 3. VARIABLE: each timestep should have a different value
+    variable_attributes = ["density"]
+
+    for attr in variable_attributes:
+        # check if all simulations have the same value for this attribute
+        # Collect all values for the given attribute across all simulations and all rows
+        vals = []
+        for sr in simu_objs:
+            lst = sr.result_df[attr].dropna().to_list()
+            vals.extend(lst)
+
+        set_vals = set(vals)
+        # 100 is higher than the timesteps.
+        assert len(set_vals) >= 100, f"Attribute {attr} has different values across simulations: {set_vals}"
+

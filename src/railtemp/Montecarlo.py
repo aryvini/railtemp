@@ -196,7 +196,13 @@ class Montecarlo:
         """
         Lazily generate simulation run objects as a generator.
         Yields tuples of (input_file, SimuRun).
+        Each SimuRun uses a fresh Rail object, copied from self.rail_object as a template.
         """
         for input_file, weather_data in self.weather_objects.items():
             for _ in range(self.num_variations):
-                yield input_file, SimuRun(CNU(deepcopy(self.rail_object), weather_data))
+                # Create a deep copy of the rail_object to ensure each simulation is independent
+                rail_copy = deepcopy(self.rail_object)
+                rail_copy.reinit_parametervalues()
+                rail_copy.material.reinit_parametervalues()
+                # Pass the copied Rail and weather data to CNU, then wrap in SimuRun
+                yield input_file, SimuRun(CNU(rail_copy, weather_data))

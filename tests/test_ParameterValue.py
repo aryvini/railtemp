@@ -1,5 +1,5 @@
 import pytest
-from railtemp.ParameterValue import BetaParameterValue, ClippedNormalParameterValue, NormalParameterValue, UniformParameterValue, ConstantParameterValue
+from railtemp.ParameterValue import BetaParameterValue, ClippedNormalParameterValue, NormalParameterValue, RandomParameterMode, UniformParameterValue, ConstantParameterValue
 
 
 @pytest.mark.parametrize("run", range(10))
@@ -10,7 +10,8 @@ def test_convert_random_to_constant(run):
     lower_bound = 0
     upper_bound = 10
     random_value = UniformParameterValue(lower_bound, upper_bound)
-    random_value.constant_during_simulation(value=True)
+    random_value.set_mode(RandomParameterMode.FIXED_GLOBAL)
+
 
     assert isinstance(random_value, ConstantParameterValue)
     assert lower_bound < random_value.get_value() <= upper_bound
