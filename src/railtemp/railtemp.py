@@ -69,6 +69,15 @@ class RailMaterial:
             raise ValueError("Emissivity must be between 0 and 1.")
         return value
 
+    def reinit_parametervalues(self):
+        """
+        Reinitialize all paramater if they are type RandomParameterValue. Use method RandomParameterValue.reinit()
+        """
+        for attr in ["_density", "_solar_absort", "_emissivity"]:
+            value = getattr(self, attr)
+            if isinstance(value, RandomParameterValue):
+                value.reinit()
+        return None
 
 class Rail:
     """
@@ -172,6 +181,31 @@ class Rail:
         if value <= 0:
             raise ValueError("Volume must be positive.")
         return value
+
+    def reinit_parametervalues(self):
+        """
+        Reinitialize all paramater if they are type RandomParameterValue. Use method RandomParameterValue.reinit()
+        """
+        for attr in [
+            "_azimuth",
+            "_cross_area",
+            "_convection_area",
+            "_radiation_area",
+            "_ambient_emissivity",
+            "_volume",
+        ]:
+            value = getattr(self, attr)
+            if isinstance(value, RandomParameterValue):
+                value.reinit()
+
+        # Handle _position dictionary
+        for key, val in self._position.items():
+            if isinstance(val, RandomParameterValue):
+                val.reinit()
+
+        return None
+
+
 
     def __load_section_coordinates(self):
         """
@@ -286,6 +320,12 @@ class CNU:
         self.weather = weather
 
         return None
+    def reinit_parametervalues(self):
+        """
+        Reinitialize all paramater if they are type RandomParameterValue. Use method RandomParameterValue.reinit()
+        """
+
+
 
     def run(self, Trail_initial):
         """
@@ -496,7 +536,9 @@ class CNU:
                 raise Exception(
                     f"Not converged to a solution forTr_simu at index {i} with error: {e}"
                 )
-
+        # # reset parameter values
+        # self.rail.reinit_parametervalues()
+        # self.rail.material.reinit_parametervalues()
         return None
 
     def __fixed_As(self, Area):

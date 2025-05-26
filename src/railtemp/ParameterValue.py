@@ -15,6 +15,7 @@ from abc import ABC,abstractmethod
 
 from numpy.random import beta, normal
 from scipy.stats import truncnorm
+from enum import Enum, auto
 
 class AbstractParameterValue(ABC):
     """
@@ -80,6 +81,19 @@ def parameter_value_factory(value):
     else:
         raise TypeError(f"Got {type(value)}")
 
+class RandomParameterMode(Enum):
+    """
+    Enum representing the behavior modes for random parameter values.
+
+    Attributes:
+        VARIABLE: The parameter value changes every time `get_value()` is called.
+        FIXED_GLOBAL: The parameter value is set once and remains constant across all simulations.
+        FIXED_PER_RUN: The parameter value is constant during a single simulation run, but is reinitialized for each new run.
+                        Reinitialization is done by calling the `re_initialize` method. railtemp.py will call this method when the simulation is restarted.
+    """
+    VARIABLE = auto()  # Value changes every call to get_value()
+    FIXED_GLOBAL = auto()  # Value is converted to a ConstantParameterValue and remains constant across ALL simulations
+    FIXED_PER_RUN = auto()  # Value is constant during a simulation run, but reinitialized for each new run
 
 class RandomParameterValue(AbstractParameterValue):
     """
@@ -88,16 +102,49 @@ class RandomParameterValue(AbstractParameterValue):
     Ensures that the `validate` method is called in the `get_value` method to validate the generated value.
     """
 
-    def constant_during_simulation(self, value: bool=False) -> Union[None, ConstantParameterValue]:
-        """
-        Method to draw a random value from the distribution and set it as a constant during the simulation.
-        Otherwise, values are drawn at each time step.
-        Converts this instance to a ConstantParameterValue if value is True.
-        """
-        if not isinstance(value, bool):
-            raise ValueError("Value for constant_during_simulation must be a boolean.")
 
-        if value:
+    def __init__(self):
+        """
+        Initializes the RandomParameterValue class.
+        This class is intended to be subclassed, so it does not have any parameters.
+        """
+        super().__init__()
+        self.mode = RandomParameterMode.VARIABLE  # Default mode is VARIABLE
+
+        val = self._generate_value()
+        self.validate(val)
+        self.init_value = val
+
+        pass
+
+    def reinit(self):
+        """
+        Re-initializes the RandomParameterValue by generating a new value and validating it.
+        This is useful when the mode is FIXED_PER_RUN.
+        This will be called by railtemp.py
+        """
+        if self.mode is RandomParameterMode.FIXED_PER_RUN:
+            # Reinitialize the value only if the mode is FIXED_PER_RUN
+            val = self._generate_value()
+            self.validate(val)
+            self.init_value = val
+        return self
+
+
+    def set_mode(self, mode: RandomParameterMode) -> Union["RandomParameterValue", ConstantParameterValue]:
+        """
+        Sets the mode for the RandomParameterValue.
+
+        Args:
+            mode (RandomParameterMode): The mode to set.
+
+        Raises:
+            ValueError: If mode is not an instance of RandomParameterMode.
+        """
+        if not isinstance(mode, RandomParameterMode):
+            raise ValueError("mode must be an instance of RandomParameterMode.")
+
+        if mode == RandomParameterMode.FIXED_GLOBAL:
             try:
                 constant_value = ConstantParameterValue(self.get_value())
                 self.__class__ = constant_value.__class__
@@ -105,10 +152,9 @@ class RandomParameterValue(AbstractParameterValue):
                 return ConstantParameterValue(self.get_value())
             except (ValueError, TypeError) as e:
                 raise ValueError(f"Failed to create ConstantParameterValue: {e}")
-        else:
-            return self
 
-
+        self.mode = mode
+        return self
 
 
     @abstractmethod
@@ -131,9 +177,12 @@ class RandomParameterValue(AbstractParameterValue):
         """
         Generates the random value and validates it.
         """
-        value = self._generate_value()
-        self.validate(value)  # Validate the generated value
-        return value
+        if self.mode is not RandomParameterMode.VARIABLE:
+            return self.init_value
+        else:
+            value = self._generate_value()
+            self.validate(value)  # Validate the generated value
+            return value
 
 
 class UniformParameterValue(RandomParameterValue):
@@ -144,6 +193,7 @@ class UniformParameterValue(RandomParameterValue):
     def __init__(self, low: float, high: float):
         self.low = low
         self.high = high
+        super().__init__()
 
     def validate(self, value: float):
         """
@@ -171,15 +221,32 @@ class BetaParameterValue(RandomParameterValue):
     A class to represent a Beta distribution for rail temperature.
     """
 
-    def __init__(self, alpha: float, beta: float):
-        """Init the BetaDistribution with alpha and beta parameters.
+    def __init__(self, *, alpha: float = None, beta: float = None, mean: float = None, sigma: float = None):
+        """Init the BetaDistribution with either alpha and beta parameters or mean and sigma parameters.
 
         Args:
-            alpha (float): alpha parameter of the Beta distribution.
-            beta (float): beta parameter of the Beta distribution.
+            alpha (float, optional): alpha parameter of the Beta distribution.
+            beta (float, optional): beta parameter of the Beta distribution.
+            mean (float, optional): mean value of the Beta distribution.
+            sigma (float, optional): deviation of the Beta distribution.
+
+        Raises:
+            ValueError: If neither (alpha, beta) nor (mean, sigma) are provided.
         """
-        self.alpha = alpha
-        self.beta = beta
+
+        if alpha is not None and beta is not None:
+            self.alpha = alpha
+            self.beta = beta
+            pass
+        elif mean is not None and sigma is not None:
+            n = (mean * (1 - mean)) / (sigma**2)
+            self.alpha = mean * n
+            self.beta = (1 - mean) * n
+            pass
+        else:
+            raise ValueError("You must provide either (alpha, beta) or (mean, sigma).")
+
+        super().__init__()
 
     def validate(self, value: float):
         pass
@@ -202,6 +269,7 @@ class NormalParameterValue(RandomParameterValue):
     def __init__(self, mean: float, std: float):
         self.mean = mean
         self.std = std
+        super().__init__()
 
     def validate(self, value: float):
         pass
@@ -222,6 +290,7 @@ class ClippedNormalParameterValue(RandomParameterValue):
         self.std = std
         self.low = low
         self.high = high
+        super().__init__()
 
     def validate(self, value: float):
         pass

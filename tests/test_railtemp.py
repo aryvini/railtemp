@@ -1,7 +1,7 @@
 import pytest
 from railtemp.railtemp import Rail, RailMaterial, WeatherData, CNU
 import pandas as pd
-from railtemp.ParameterValue import UniformParameterValue, ConstantParameterValue
+from railtemp.ParameterValue import RandomParameterMode, UniformParameterValue, ConstantParameterValue
 import pytz
 
 
@@ -144,7 +144,7 @@ def test_simulation_with_random_value_object(input_data, expected_result, run):
     df.set_index("Date", inplace=True)
 
     density = UniformParameterValue(7800, 7900)
-    density.constant_during_simulation(value=True)
+    density = density.set_mode(RandomParameterMode.FIXED_GLOBAL)
     solar_absort = UniformParameterValue(0.7, 0.9)
     emissivity = UniformParameterValue(0.6, 0.8)
 
@@ -153,7 +153,7 @@ def test_simulation_with_random_value_object(input_data, expected_result, run):
     lat = UniformParameterValue(41.48, 41.49)
     long = UniformParameterValue(-7.2, -7.1)
     elev = UniformParameterValue(200, 250)
-    cross_area = UniformParameterValue(7.0e-3, 7.5e-3).constant_during_simulation(value=True)
+    cross_area = UniformParameterValue(7.0e-3, 7.5e-3).set_mode(RandomParameterMode.FIXED_GLOBAL)
     radiation_area = UniformParameterValue(430.46e-3, 450.46e-3)
     ambient_emissivity = UniformParameterValue(0.4, 0.6)
     convection_area = UniformParameterValue(430.46e-3, 450.46e-3)

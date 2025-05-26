@@ -1,7 +1,8 @@
 import pytest
 from railtemp.railtemp import Rail, RailMaterial, WeatherData, CNU
 import pandas as pd
-from railtemp.ParameterValue import UniformParameterValue
+from railtemp.ParameterValue import UniformParameterValue, RandomParameterMode
+
 import pytz
 
 
@@ -9,7 +10,7 @@ import pytz
     "modelled_As, distinct",
     [
         (UniformParameterValue(1, 2), True),
-        (UniformParameterValue(1, 2).constant_during_simulation(True), False),
+        (UniformParameterValue(1, 2).set_mode(RandomParameterMode.FIXED_GLOBAL), False),
         (0.1, False),
     ],
 )
