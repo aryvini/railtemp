@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.6 (2025-06-04)
+
+### Bug Fixes
+
+- Release workflows
+  ([`ad42e50`](https://github.com/aryvini/railtemp/commit/ad42e50e1b9cea5077e5fdaf3e73877dc0c6a8f2))
+
+
 ## v1.2.5 (2025-06-04)
 
 ### Bug Fixes
