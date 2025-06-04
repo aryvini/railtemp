@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.7 (2025-06-04)
+
+### Bug Fixes
+
+- Release workflow bump pyproj
+  ([`f3648e9`](https://github.com/aryvini/railtemp/commit/f3648e9b58227aaaae93b7ccd8b6bae3daea4c42))
+
+
 ## v1.2.6 (2025-06-04)
 
 ### Bug Fixes
