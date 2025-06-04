@@ -1,6 +1,6 @@
 # railtemp
 
-[![Python application](https://github.com/aryvini/railtemp/actions/workflows/python-app.yml/badge.svg?branch=create_package)](https://github.com/aryvini/railtemp/actions/workflows/python-app.yml)
+[![Python application](https://github.com/aryvini/railtemp/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/aryvini/railtemp/actions/workflows/python-app.yml)
 
 
 
