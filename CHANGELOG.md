@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.8 (2025-06-04)
+
+### Bug Fixes
+
+- Release workflows and readme badge
+  ([`7be657f`](https://github.com/aryvini/railtemp/commit/7be657fa2a7f1ecae032ea9bf540405efd92b5a3))
+
+
 ## v1.2.7 (2025-06-04)
 
 ### Bug Fixes
