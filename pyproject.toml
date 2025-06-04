@@ -58,7 +58,7 @@ exclude = [
 addopts = "-v"
 
 [tool.semantic_release]
-version_variable = "pyproject.toml:project.version"
+version_toml = ["pyproject.toml:project.version"]
 branch = "master"
 upload_to_pypi = false
 upload_to_release = true
