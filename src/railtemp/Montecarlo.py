@@ -13,7 +13,7 @@ import time
 
 import pytz
 from railtemp.railtemp import CNU, Rail, WeatherData
-from typing import List, Dict, Generator, Tuple
+from typing import List, Dict, Generator, Tuple, Optional
 from copy import deepcopy
 from pandas import DataFrame
 import pandas as pd
@@ -39,26 +39,31 @@ class SimuRun:
     def __repr__(self):
         return f"SimuRun({self._uuid},status:{self.status.name})"
 
-    def __init__(self, simulation_object: CNU):
+    def __init__(self, simulation_object: CNU, trail_initial: Optional[float] = None):
         if not isinstance(simulation_object, CNU):
             raise ValueError("simulation_object must be an instance of CNU.")
 
         self._uuid = uuid.uuid4().hex[:10]  # Generate a short UUID (8 characters)
         self.status: SimuRunStatus = SimuRunStatus.NOT_STARTED
         self.simulation_object: CNU = simulation_object
+        self.trail_initial: Optional[float] = trail_initial
         self.start_time: float = None
         self.end_time: float = None
         self.result_df: DataFrame = (
             None  # Placeholder for DataFrame to be populated during simulation
         )
 
-    def run(self, Trail_initial: float = None):
+    def run(self, Trail_initial: Optional[float] = None):
         """
         Run the simulation with the given initial temperature.
         If initial temperature not given, the first value of the ambient temperature from weather obeject is used.
         """
         if Trail_initial is None:
-            Trail_initial = self.__get_initial_temperature()
+            if getattr(self, "trail_initial", None) is not None:
+                Trail_initial = self.trail_initial
+            else:
+                Trail_initial = self.__get_initial_temperature()
+
         if not isinstance(Trail_initial, (float, int)):
             self.status = SimuRunStatus.FAILED
             raise ValueError("Trail_initial must be a float or int.")
@@ -104,13 +109,11 @@ class SimuRun:
         else:
             pars["mc_material_specific_heat"] = "custom function"
 
-
         pars["mc_run_id"] = self._uuid
         pars["mc_start_time"] = str(self.start_time)
         pars["mc_end_time"] = str(self.end_time)
         pars["mc_duration_time"] = str(self.end_time - self.start_time)
         pars["mc_stats"] = str(self.status)
-
 
         summary["parameters"] = pars
 
@@ -172,12 +175,12 @@ class Montecarlo:
         self.num_total_simulations = len(self.weather_objects) * self.num_variations
 
     @staticmethod
-    def __parse_weather_data(input_list, tz) -> Dict[str, WeatherData]:
+    def __parse_weather_data(input_list, tz) -> Dict[str, Tuple[WeatherData, Optional[float]]]:
         """
         Parse the weather data from the input list of strings.
         Create a WeatherData object for each input string.
         """
-        weather_objects: Dict[str, WeatherData] = {}
+        weather_objects: Dict[str, Tuple[WeatherData, Optional[float]]] = {}
         for file_path in input_list:
             try:
                 df = pd.read_csv(file_path, parse_dates=["record_date"], index_col="record_date")
@@ -187,7 +190,12 @@ class Montecarlo:
                     ambient_temperature=df["ambient_temperature"],
                     timezone=pytz.timezone(tz),
                 )
-                weather_objects[file_path] = weather_data
+                if "trail_initial" in df.columns:
+                    trail_initial = df["trail_initial"].iloc[0]
+                else:
+                    trail_initial = None
+                weather_objects[file_path] = (weather_data, trail_initial)
+
             except Exception as e:
                 raise ValueError(f"Error parsing weather data: {e}")
         return weather_objects
@@ -198,11 +206,16 @@ class Montecarlo:
         Yields tuples of (input_file, SimuRun).
         Each SimuRun uses a fresh Rail object, copied from self.rail_object as a template.
         """
-        for input_file, weather_data in self.weather_objects.items():
+        for input_file, (weather_data, trail_initial) in self.weather_objects.items():
             for _ in range(self.num_variations):
                 # Create a deep copy of the rail_object to ensure each simulation is independent
                 rail_copy = deepcopy(self.rail_object)
                 rail_copy.reinit_parametervalues()
                 rail_copy.material.reinit_parametervalues()
                 # Pass the copied Rail and weather data to CNU, then wrap in SimuRun
-                yield input_file, SimuRun(CNU(rail_copy, weather_data))
+                yield (
+                    input_file,
+                    SimuRun(
+                        simulation_object=CNU(rail_copy, weather_data), trail_initial=trail_initial
+                    ),
+                )
