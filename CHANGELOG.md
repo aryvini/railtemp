@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.9 (2025-10-23)
+
+### Bug Fixes
+
+- Support for trail_init on SimuRun objects
+  ([`2c9b1e6`](https://github.com/aryvini/railtemp/commit/2c9b1e6e0b54cd64874e97d4b0f3e1918f58d882))
+
+
 ## v1.2.8 (2025-06-04)
 
 ### Bug Fixes
