@@ -10,6 +10,7 @@
 
 
 import time
+import uuid
 
 import pytz
 from railtemp.railtemp import CNU, Rail, WeatherData
@@ -18,7 +19,6 @@ from copy import deepcopy
 from pandas import DataFrame
 import pandas as pd
 from enum import Flag, auto
-import uuid
 
 
 class SimuRunStatus(Flag):
@@ -43,7 +43,10 @@ class SimuRun:
         if not isinstance(simulation_object, CNU):
             raise ValueError("simulation_object must be an instance of CNU.")
 
-        self._uuid = uuid.uuid4().hex[:10]  # Generate a short UUID (8 characters)
+        # Timestamp (microseconds) + random suffix derived from UUID for parallel execution safety
+        timestamp = int(time.time() * 1_000_000)
+        random_suffix = uuid.uuid4().hex[:6]  # Extract first 6 chars from UUID hex
+        self._uuid = f"{timestamp}-{random_suffix}"
         self.status: SimuRunStatus = SimuRunStatus.NOT_STARTED
         self.simulation_object: CNU = simulation_object
         self.trail_initial: Optional[float] = trail_initial

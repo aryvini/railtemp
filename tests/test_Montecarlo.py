@@ -195,9 +195,9 @@ def test_initial_temperature_handling(weather_file):
 
     rst_dict = {"results": [entry["simu_results"] for entry in rst_dict["results"]]}
 
-    with open("./tests/artifacts/monte_carlo_result_with_trail_initial.json", "w+") as file:
-        loaded = json.dumps(rst_dict, indent=4)
-        file.write(loaded)
+    # with open("./tests/artifacts/monte_carlo_result_with_trail_initial.json", "w+") as file:
+    #     loaded = json.dumps(rst_dict, indent=4)
+    #     file.write(loaded)
 
     df = pd.read_csv(weather_file)
     if "trail_initial" in df.columns:
