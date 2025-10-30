@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.10 (2025-10-30)
+
+### Bug Fixes
+
+- Uuid simurun generation
+  ([`f89d468`](https://github.com/aryvini/railtemp/commit/f89d4681d523cab910f40edb6cdac3f6c706507d))
+
+
 ## v1.2.9 (2025-10-23)
 
 ### Bug Fixes
