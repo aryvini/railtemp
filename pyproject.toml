@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "railtemp"
-version = "1.2.10"
+version = "1.2.11"
 authors = [
   { name="Ary Vinicius Nervis Frigeri", email="aryviniciusnf@gmail.com" },
 ]

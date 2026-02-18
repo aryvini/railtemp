@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v1.2.11 (2026-02-18)
+
+### Bug Fixes
+
+- Add license
+  ([`d46482c`](https://github.com/aryvini/railtemp/commit/d46482cadd928ddfc17b96cddb78b8747c8ccc01))
+
+- Add uv to the test workflow ([#25](https://github.com/aryvini/railtemp/pull/25),
+  [`54b846e`](https://github.com/aryvini/railtemp/commit/54b846e9ebc38090c5f374c960201c56a32dbdf5))
+
+
 ## v1.2.10 (2025-10-30)
 
 ### Bug Fixes
