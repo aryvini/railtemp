@@ -11,7 +11,7 @@ authors = [
 description = "Package to simulate railway temperatures based on weather conditions"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
