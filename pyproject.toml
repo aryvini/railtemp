@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["maturin>=1.5,<2"]
+build-backend = "maturin"
 
 [project]
 name = "railtemp"
@@ -40,14 +40,14 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/aryvini/railtemp"
 
-[tool.hatch.build]
-exclude = ["tests/"]
-
-[tool.hatch.build.targets.sdist]
-include = ["src/railtemp/**","examples/"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/railtemp","examples/"]
+[tool.maturin]
+# Mixed Python+Rust src-layout:
+#   - Python package:  src/railtemp/
+#   - Rust extension:  src/railtemp_core/  → compiled into railtemp._core
+module-name = "railtemp._core"
+features = ["pyo3/extension-module"]
+python-source = "src"
+manifest-path = "src/railtemp_core/Cargo.toml"
 
 [tool.ruff]
 line-length = 100
@@ -60,7 +60,20 @@ addopts = "-v"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
-branch = "master"
 upload_to_pypi = false
 upload_to_release = true
 changelog_file = "CHANGELOG.md"
+
+[tool.semantic_release.branches.master]
+match = "master"
+prerelease = false
+
+[tool.semantic_release.branches.develop]
+match = "develop"
+prerelease = true
+prerelease_token = "dev"
+
+[dependency-groups]
+dev = [
+    "maturin>=1.13.1",
+]

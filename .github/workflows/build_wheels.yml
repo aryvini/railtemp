@@ -1,0 +1,125 @@
+name: Build and publish wheels
+
+# Triggered when semantic-release pushes a version tag (e.g. v1.2.3).
+# Can also be run manually from the Actions UI.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  # ── Linux ─────────────────────────────────────────────────────────────────
+  linux:
+    name: Linux (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64, aarch64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          # manylinux: auto picks the lowest compatible manylinux tag
+          manylinux: auto
+          args: --release --out dist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-linux-${{ matrix.target }}
+          path: dist
+
+  # ── macOS ─────────────────────────────────────────────────────────────────
+  macos:
+    name: macOS (${{ matrix.platform.target }})
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      matrix:
+        platform:
+          - { runner: macos-13,  target: x86_64  }   # Intel
+          - { runner: macos-14,  target: aarch64 }   # Apple Silicon
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-${{ matrix.platform.target }}
+          path: dist
+
+  # ── Windows ───────────────────────────────────────────────────────────────
+  windows:
+    name: Windows (${{ matrix.target }})
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [x86_64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-windows-${{ matrix.target }}
+          path: dist
+
+  # ── Source distribution ───────────────────────────────────────────────────
+  # Fallback for platforms/architectures without a pre-built wheel.
+  # Users who install from the sdist will compile Rust themselves.
+  sdist:
+    name: Source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-sdist
+          path: dist
+
+  # ── Upload wheels to the GitHub Release ─────────────────────────────────
+  # Semantic-release (release.yml) already creates the GitHub Release for the
+  # tag.  This job attaches the pre-built wheels and the sdist to that release
+  # so users can install directly:
+  #   pip install https://github.com/<owner>/railtemp/releases/download/vX.Y.Z/<wheel>
+  publish:
+    name: Upload wheels to GitHub Release
+    runs-on: ubuntu-latest
+    needs: [linux, macos, windows, sdist]
+    permissions:
+      contents: write   # needed to upload release assets
+    steps:
+      - name: Download all wheel artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Upload every .whl / .tar.gz found under the artifact directories
+          gh release upload "${{ github.ref_name }}" wheels-*/*.whl wheels-*/*.tar.gz \
+            --repo "${{ github.repository }}" \
+            --clobber
