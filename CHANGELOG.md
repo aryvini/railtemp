@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.3.0-dev.3 (2026-05-07)
+
+### Bug Fixes
+
+- Linux wheel build
+  ([`c80caed`](https://github.com/aryvini/railtemp/commit/c80caed1c6dcbdf6431d4da101faf05c489a87ae))
+
+
 ## v1.3.0-dev.2 (2026-05-07)
 
 ### Bug Fixes
