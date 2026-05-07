@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.3.0-dev.4 (2026-05-07)
+
+### Bug Fixes
+
+- Wheels distribution
+  ([`4a01c81`](https://github.com/aryvini/railtemp/commit/4a01c819e3c4942e1e109f7542dad54474ce8417))
+
+
 ## v1.3.0-dev.3 (2026-05-07)
 
 ### Bug Fixes
