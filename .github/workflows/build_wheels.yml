@@ -84,7 +84,7 @@ jobs:
   publish:
     name: Upload wheels to GitHub Release
     runs-on: ubuntu-latest
-    needs: [linux, macos, windows, sdist]
+    needs: [linux, windows, sdist]
     permissions:
       contents: write   # needed to upload release assets
     steps:
