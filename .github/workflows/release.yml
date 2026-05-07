@@ -51,6 +51,8 @@ jobs:
   build_wheels:
     needs: ["release"]
     if: needs.release.result == 'success' && needs.release.outputs.released == 'true'
+    permissions:
+      contents: write
     uses: ./.github/workflows/build_wheels.yml
     with:
       release_tag: ${{ needs.release.outputs.tag }}
