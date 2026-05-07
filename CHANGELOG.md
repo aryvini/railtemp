@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v1.3.0-dev.1 (2026-05-07)
+
+### Continuous Integration
+
+- Improve test strategy
+  ([`d52e835`](https://github.com/aryvini/railtemp/commit/d52e835488479e766bef8cdea6e45c4922ebd75b))
+
+- Improve tests
+  ([`758de74`](https://github.com/aryvini/railtemp/commit/758de7445b355d612d7757a4df436c68a1fdfc35))
+
+- Test also on windows
+  ([`a7b741f`](https://github.com/aryvini/railtemp/commit/a7b741f0e6988da9059a288710aafe8b18debd5c))
+
+### Features
+
+- Add initial functions for rust backend
+  ([`ddae8df`](https://github.com/aryvini/railtemp/commit/ddae8dfb8624e4954ef781b2612d30541e876c03))
+
+
 ## v1.2.11 (2026-02-18)
 
 ### Bug Fixes
