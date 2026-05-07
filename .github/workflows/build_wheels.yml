@@ -7,6 +7,17 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing tag to upload assets to (optional)
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      release_tag:
+        description: Tag name to upload assets to (for reusable workflow calls)
+        required: true
+        type: string
 
 jobs:
   # ── Linux ─────────────────────────────────────────────────────────────────
@@ -87,6 +98,8 @@ jobs:
     needs: [linux, windows, sdist]
     permissions:
       contents: write   # needed to upload release assets
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
     steps:
       - name: Download all wheel artifacts
         uses: actions/download-artifact@v4
@@ -96,6 +109,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Upload every .whl / .tar.gz found under the artifact directories
-          gh release upload "${{ github.ref_name }}" wheels-*/*.whl wheels-*/*.tar.gz \
+          gh release upload "${RELEASE_TAG}" wheels-*/*.whl wheels-*/*.tar.gz \
             --repo "${{ github.repository }}" \
             --clobber
