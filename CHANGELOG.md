@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v1.3.0-dev.2 (2026-05-07)
+
+### Bug Fixes
+
+- Release workflow
+  ([`5463141`](https://github.com/aryvini/railtemp/commit/5463141de2ac64c355f280744bf2d799d7c392de))
+
+### Continuous Integration
+
+- Fix dev releases
+  ([`0ee9e00`](https://github.com/aryvini/railtemp/commit/0ee9e008671057ba2da30f5d5fedad67a8702ab1))
+
+- Improve release
+  ([`e057f90`](https://github.com/aryvini/railtemp/commit/e057f900fefd30a7de01ec7f32895f7a49c63e1e))
+
+- Improve release
+  ([`b9df807`](https://github.com/aryvini/railtemp/commit/b9df807dd62c1172d9ae30adc4d83f80734f6699))
+
+
 ## v1.3.0-dev.1 (2026-05-07)
 
 ### Continuous Integration
