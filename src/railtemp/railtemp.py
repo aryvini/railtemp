@@ -79,6 +79,7 @@ class RailMaterial:
                 value.reinit()
         return None
 
+
 class Rail:
     """
     Class that defines rail geometric properties and location
@@ -205,8 +206,6 @@ class Rail:
 
         return None
 
-
-
     def __load_section_coordinates(self):
         """
         method to retrieve X,Y,Z coordinates of a 1 meter long rail track
@@ -320,14 +319,13 @@ class CNU:
         self.weather = weather
 
         return None
+
     def reinit_parametervalues(self):
         """
         Reinitialize all paramater if they are type RandomParameterValue. Use method RandomParameterValue.reinit()
         """
 
-
-
-    def run(self, Trail_initial):
+    def run(self, Trail_initial, backend="python"):
         """
         Run the simulation
 
@@ -350,13 +348,20 @@ class CNU:
         self.__calculate_hconv()
         print("Done")
 
-        print("Fetching solar data")
-        self.__fetch_solar_data()
-        print("Done")
+        if backend == "python":
+            print("Fetching solar data")
+            self.__fetch_solar_data()
+            print("Done")
 
-        print("Calculating As")
-        self.__calculate_As()
-        print("Done")
+            print("Calculating As")
+            self.__calculate_As()
+            print("Done")
+        elif backend == "rust":
+            print("Solar and sun area calculation in rust")
+            self.__calculate_As_rust()
+            print("Done")
+        else:
+            raise ValueError("Invalid backend specified. Use 'python' or 'rust'.")
 
         print("Creating Delta time Columns")
         self.__create_delta_time_columns()
@@ -435,6 +440,24 @@ class CNU:
         )
 
         return None
+
+    def __calculate_As_rust(self):
+        from railtemp._core import calculate_areas
+
+        profile: str = self.rail.name
+        lat: float = self.rail.position["lat"]
+        long: float = self.rail.position["long"]
+        azimuth: float = self.rail.azimuth
+        time: list[str] = (
+            self.df.index.tz_localize(self.weather.tz).map(lambda x: x.isoformat()).tolist()
+        )
+
+        areas_sun, sun_azimuth, sun_elevation = calculate_areas(
+            str(profile), lat, long, azimuth, time
+        )
+        self.df["As"] = areas_sun
+        self.df["Sun_azimuth"] = sun_azimuth
+        self.df["Sun_altitude"] = sun_elevation
 
     def __calculate_original_CNU_As(self):
         data = self.df
@@ -673,3 +696,37 @@ class CNU:
         self.result.set_index("Date", inplace=True)
 
         return None
+
+
+# ---------------------------------------------------------------------------
+# Rust solver bridge (Step 1)
+# ---------------------------------------------------------------------------
+
+
+def run_solver(df: pd.DataFrame) -> None:
+    """Pass a DataFrame to the Rust solver.
+
+    The DataFrame must contain the columns:
+        - wind_speed          [m/s]
+        - temperature_ambient [°C]
+        - solar_radiation     [W/m²]
+        - datetime            [datetime64[ns, tz]]
+        - rail_density        [kg/m³] float
+        - rail_solar_absorp   [#] (0 to 1) float
+        - rail_emissivity     [#] (0 to 1) float
+        - latitude            [float]
+        - longitude           [float]
+        - elevation           [float]
+        - rail_azimuth        [float]
+        - rail_profile        [UIC54 | UIC60]
+        - rail_cross_area       [m²] float
+        - rail_convection_area [m²] float
+        - rail_radiation_area  [m²] float
+        - ambient_emissivity   [#] (0 to 1) float
+
+    The Rust function validates these columns and will eventually
+    run the full thermal ODE solution.
+    """
+    from railtemp._core import solve  # built with `maturin develop`
+
+    solve(df)

@@ -1,0 +1,32 @@
+[package]
+name = "railtemp-core"
+version = "0.1.0"
+edition = "2021"
+description = "Rust extension for railtemp"
+
+[lib]
+name = "_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3    = { version = "0.22", features = ["extension-module"] }
+# numpy   = "0.22"
+nalgebra = "0.33"
+geo = "0.32"
+solar-positioning = "0.5.1"
+chrono = "*"
+
+[dev-dependencies]
+rstest = "0.26.1"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "projection"
+harness = false
+
+# Release profile: maximise speed for scientific computation
+[profile.release]
+opt-level     = 3
+lto           = true   # link-time optimisation across crates
+codegen-units = 1      # single codegen unit → better inlining
+panic         = "abort" # smaller binary, no unwinding overhead

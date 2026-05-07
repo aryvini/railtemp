@@ -7,6 +7,12 @@ __pycache__/functions_CNU.cpython-37.pyc
 **/.ipynb_checkpoints/*
 .ruff_cache/
 
+
+# Rust
+src/railtemp_core/target
+target
+
+
 ### PythonVanilla ###
 # Byte-compiled / optimized / DLL files
 __pycache__/

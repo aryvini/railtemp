@@ -1,0 +1,6 @@
+[workspace]
+members = ["src/railtemp_core"]
+resolver = "2"
+
+# maturin reads the workspace root Cargo.toml; point it at the real crate
+# via the manifest-path in pyproject.toml (no extra config needed here)
